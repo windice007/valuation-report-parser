@@ -1,8 +1,6 @@
-import imp
 import pyexcel as p
 from pyexcel.sheet import Sheet
 from prettytable import PrettyTable
-
 
 START_ROW = 4
 START_COLUMN = 1
