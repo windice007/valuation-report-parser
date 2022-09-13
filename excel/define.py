@@ -20,6 +20,22 @@ class DataCell:
         self.capture_regex = regex
 
 
+class ValueDefine:
+    column: str = None
+    cell: DataCell = None
+
+
+class SubjectDefine:
+    code = None
+    values = None
+
+
+class PositionDefine:
+    cost_subject: SubjectDefine = None
+    increment_subject: SubjectDefine = None
+    interest_subject: SubjectDefine = None
+
+
 class ExcelConfig:
     start_row = 4
     start_column = 1
@@ -27,6 +43,8 @@ class ExcelConfig:
     product_code: DataCell | None = None
     subject_code_index = 0
     subject_code_detail_regex = r"^\d{8}(\w+)$"
+    pos_bond_define: list = None
+    pos_stock_define: list = None
 
 
 class ValuationReportData:
