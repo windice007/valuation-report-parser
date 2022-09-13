@@ -1,11 +1,18 @@
-from audioop import add
 import re
 import pyexcel as p
 from pyexcel.sheet import Sheet
 
 
+class ProcessContext:
+    sheet: Sheet | None = None
+    row: int | None = None
+
+    def __init__(self, sheet: Sheet) -> None:
+        self.sheet = sheet
+
+
 class DataCell:
-    address = None | str
+    address: str | int | None = None
     capture_regex = None
 
     def __init__(self, address, regex=None):
@@ -16,23 +23,24 @@ class DataCell:
 class ExcelConfig:
     start_row = 4
     start_column = 1
-    valuation_date = None | DataCell
-    product_code = None | DataCell
+    valuation_date: DataCell | None = None
+    product_code: DataCell | None = None
     subject_code_index = 0
     subject_code_detail_regex = r"^\d{8}(\w+)$"
 
 
 class ValuationReportData:
-    productCode = None | str
-    productName = None | str
-    valuationDate = None | str
+    productCode: str | None = None
+    productName: str | None = None
+    valuationDate: str | None = None
     details = []
     summaries = []
 
 
-def capture_data(sheet: Sheet, cell: DataCell) -> str:
+def capture_data(context: ProcessContext, cell: DataCell) -> str:
     if cell == None or cell.address == None:
         return None
+    sheet = context.sheet
     cell_value = sheet[cell.address]
 
     if cell.capture_regex != None:
@@ -50,13 +58,13 @@ def process_excel_stream_data(stream, extension, config: ExcelConfig) -> Sheet:
 
 
 def process_excel_file_data(file, config: ExcelConfig) -> ValuationReportData:
-    sheet = p.get_sheet(file_name=file)
+    sheet = p.get_sheet(
+        file_name=file)
+
+    context = ProcessContext(sheet)
 
     vpd = ValuationReportData()
-    vpd.productCode = capture_data(sheet, config.product_code)
-    vpd.valuationDate = capture_data(sheet, config.valuation_date)
-
-
-    
+    vpd.productCode = capture_data(context, config.product_code)
+    vpd.valuationDate = capture_data(context, config.valuation_date)
 
     return vpd
