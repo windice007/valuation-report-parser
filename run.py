@@ -3,7 +3,7 @@ import pyexcel as p
 from pyexcel.sheet import Sheet
 from prettytable import PrettyTable
 from excel import process_excel_file_data as process, ExcelConfig, DataCell
-from excel.define import PositionDefine
+from excel.define import PositionDefine, SubjectDefine, ValueDefine
 
 START_ROW = 4
 START_COLUMN = 1
@@ -27,8 +27,19 @@ if __name__ == "__main__":
     config.pos_bond_define = []
 
     d1 = PositionDefine()
-    
-    
+    d1.subjects = []
+
+    s1 = SubjectDefine()
+    s1.code = "11030401"
+    s1.values = []
+
+    v1 = ValueDefine()
+    v1.cell = DataCell("C")
+    v1.column = "SYMBOL"
+
+    s1.values.append(v1)
+    d1.subjects.append(s1)
+    config.pos_bond_define.append(d1)
 
     vpd = process(file, config)
 

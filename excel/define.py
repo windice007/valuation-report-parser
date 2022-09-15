@@ -1,4 +1,5 @@
 import re
+from typing import List
 import pyexcel as p
 from pyexcel.sheet import Sheet
 
@@ -26,22 +27,19 @@ class ValueDefine:
 
 
 class SubjectDefine:
-    code = None
-    values = None
+    code: str = None
+    values: List[ValueDefine] = None
 
 
 class PositionDefine:
-    cost_subject: SubjectDefine = None
-    increment_subject: SubjectDefine = None
-    interest_subject: SubjectDefine = None
+    subjects: List[SubjectDefine] = None
 
 
 class ExcelConfig:
     start_row = 4
-    start_column = 1
     valuation_date: DataCell | None = None
     product_code: DataCell | None = None
-    subject_code_index = 0
+    subject_code_column = 0
     subject_code_detail_regex = r"^\d{8}(\w+)$"
     pos_bond_define: list = None
     pos_stock_define: list = None
