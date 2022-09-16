@@ -2,11 +2,13 @@ import re
 from typing import List
 import pyexcel as p
 from pyexcel.sheet import Sheet
+from base.utils import excel_column_index
 
 
 class ProcessContext:
     sheet: Sheet | None = None
     row: int | None = None
+    subject_column: int = None
 
     def __init__(self, sheet: Sheet) -> None:
         self.sheet = sheet
@@ -39,8 +41,8 @@ class ExcelConfig:
     start_row = 4
     valuation_date: DataCell | None = None
     product_code: DataCell | None = None
-    subject_code_column = 0
-    subject_code_detail_regex = r"^\d{8}(\w+)$"
+    subject_code_column = "B"
+    subject_code_detail_regex = r"^\d{8}(.+)$"
     pos_bond_define: list = None
     pos_stock_define: list = None
 
@@ -78,9 +80,19 @@ def process_excel_file_data(file, config: ExcelConfig) -> ValuationReportData:
         file_name=file)
 
     context = ProcessContext(sheet)
+    context.subject_column = excel_column_index(config.subject_code_column)
 
     vpd = ValuationReportData()
     vpd.productCode = capture_data(context, config.product_code)
     vpd.valuationDate = capture_data(context, config.valuation_date)
+
+    for i in range(len(sheet)):
+        code = sheet.cell_value(i, context.subject_column)
+        if code == '' or code == None:
+            continue
+        match = re.search(re.compile(config.subject_code_detail_regex), code)
+        if match:
+            s_code = match[1]
+            print(s_code)
 
     return vpd
