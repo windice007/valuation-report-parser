@@ -36,8 +36,13 @@ if __name__ == "__main__":
     v1 = ValueDefine()
     v1.cell = DataCell("C")
     v1.column = "SYMBOL"
-
     s1.values.append(v1)
+
+    v1 = ValueDefine()
+    v1.cell = DataCell("D")
+    v1.column = "CURRENCY"
+    s1.values.append(v1)
+
     d1.subjects.append(s1)
     config.pos_bond_define.append(d1)
 

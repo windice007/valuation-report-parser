@@ -130,6 +130,9 @@ def process_position(context: ProcessContext, config: ExcelConfig,  pos_type: st
 
 def process_positions(context: ProcessContext, config: ExcelConfig, vpd: ValuationReportData):
     d = process_position(context, config, "pos_bond_define")
+    for x in d.values():
+        vpd.details.append(x)
+
 
 
 def process_excel_file_data(file, config: ExcelConfig) -> ValuationReportData:
