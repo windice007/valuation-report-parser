@@ -21,6 +21,7 @@ class SubjectDefine:
 
 
 class PositionDefine:
+    default: dict | None = None
     subjects: List[SubjectDefine] = None
 
 
