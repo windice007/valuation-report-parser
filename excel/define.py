@@ -27,8 +27,10 @@ class PositionDefine:
 
 class ExcelConfig:
     start_row = 4
-    valuation_date: DataCell | None = None
-    product_code: DataCell | None = None
+    global_data = {
+        "valuation_date": None,
+        "product_code": None
+    }
     subject_code_column = "B"
     subject_code_detail_regex = r"^(\d{8})(.+)$"
     pos_bond_define: List[PositionDefine] = None

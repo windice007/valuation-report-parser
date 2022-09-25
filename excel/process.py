@@ -13,6 +13,7 @@ class ProcessContext:
     row: int | None = None
     subject_column: int | None = None
     config: ExcelConfig | None = None
+    global_data: dict = {}
 
     def __init__(self, sheet: Sheet, config: ExcelConfig) -> None:
         self.sheet = sheet
@@ -97,10 +98,10 @@ def process_excel_file_data(file, config: ExcelConfig) -> ValuationReportData:
     sheet = p.get_sheet(file_name=file)
     context = ProcessContext(sheet, config)
 
-    vpd = ValuationReportData()
-    vpd.productCode = capture_data(context.sheet, config.product_code)
-    vpd.valuationDate = capture_data(context.sheet, config.valuation_date)
+    for k, v in config.global_data.items():
+        context.global_data[k] = capture_data(sheet, v)
 
+    vpd = ValuationReportData()
     process_positions(context, vpd)
 
     return vpd
