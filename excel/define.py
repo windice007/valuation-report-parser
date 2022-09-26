@@ -33,5 +33,5 @@ class ExcelConfig:
     }
     subject_code_column = "B"
     subject_code_detail_regex = r"^(\d{8})(.+)$"
-    pos_bond_define: List[PositionDefine] = None
-    pos_stock_define: List[PositionDefine] = None
+    BUSIPOSBOND: List[PositionDefine] = None
+    BUSIPOSSTOCK: List[PositionDefine] = None

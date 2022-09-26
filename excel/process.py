@@ -5,7 +5,7 @@ from typing import List
 from excel.define import DataCell, ExcelConfig, PositionDefine
 from pyexcel.sheet import Sheet
 from base.utils import excel_column_index
-from model.mysql_models import BUSIPOSBOND
+import model.mysql_models as MODEL
 
 
 class ProcessContext:
@@ -53,16 +53,11 @@ def process_excel_stream_data(stream, extension, config: ExcelConfig) -> Sheet:
     return p.get_sheet(file_stream=stream, file_type=extension)
 
 
-TYPE_MAPPING = {
-    "pos_bond_define": BUSIPOSBOND
-}
-
-
 def process_position(context: ProcessContext,  pos_type: str):
     sheet = context.sheet
     config = context.config
     defines: List[PositionDefine] = getattr(config, pos_type)
-    Model = TYPE_MAPPING[pos_type]
+    Model = getattr(MODEL, pos_type)
     data: dict = {}
     for pd in defines:
         for sd in pd.subjects:
@@ -89,7 +84,7 @@ def process_position(context: ProcessContext,  pos_type: str):
 
 
 def process_positions(context: ProcessContext, vpd: ValuationReportData):
-    d = process_position(context, "pos_bond_define")
+    d = process_position(context, "BUSIPOSBOND")
     for x in d.values():
         vpd.details.append(x)
 
