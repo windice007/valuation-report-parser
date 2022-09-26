@@ -1,3 +1,4 @@
+from turtle import position
 from typing import List
 
 
@@ -27,11 +28,7 @@ class PositionDefine:
 
 class ExcelConfig:
     start_row = 4
-    global_data = {
-        "valuation_date": None,
-        "product_code": None
-    }
+    global_data = {}
     subject_code_column = "B"
     subject_code_detail_regex = r"^(\d{8})(.+)$"
-    BUSIPOSBOND: List[PositionDefine] = None
-    BUSIPOSSTOCK: List[PositionDefine] = None
+    positions = {}

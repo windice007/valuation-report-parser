@@ -25,7 +25,7 @@ class ValuationReportData:
     productCode: str | None = None
     productName: str | None = None
     valuationDate: str | None = None
-    details = []
+    details = {}
     summaries = []
 
 
@@ -53,12 +53,13 @@ def process_excel_stream_data(stream, extension, config: ExcelConfig) -> Sheet:
     return p.get_sheet(file_stream=stream, file_type=extension)
 
 
-def process_position(context: ProcessContext,  pos_type: str):
+def process_position(context: ProcessContext,  pos_type: str, defines: List[PositionDefine], vpd: ValuationReportData):
+    if not isinstance(defines, list):
+        return
     sheet = context.sheet
     config = context.config
-    defines: List[PositionDefine] = getattr(config, pos_type)
     Model = getattr(MODEL, pos_type)
-    data: dict = {}
+
     for pd in defines:
         for sd in pd.subjects:
             for i in range(len(sheet)):
@@ -72,25 +73,25 @@ def process_position(context: ProcessContext,  pos_type: str):
                     if s_code == sd.code:
                         t_code = match[2]
 
-                        if t_code not in data:
-                            data[t_code] = Model()
+                        if t_code not in vpd.details:
+                            obj = Model()
+                            vpd.details[t_code] = obj
                             if pd.default:
-                                obj = data[t_code]
                                 for k, v in pd.default.items():
                                     setattr(obj, k, v)
 
-                        obj = data[t_code]
+                        obj = vpd.details[t_code]
 
                         for vd in sd.values:
                             d = capture_data(sheet, vd.cell, i)
                             setattr(obj, vd.column, d)
-    return data
 
 
 def process_positions(context: ProcessContext, vpd: ValuationReportData):
-    d = process_position(context, "BUSIPOSBOND")
-    for x in d.values():
-        vpd.details.append(x)
+    config = context.config
+
+    for k, v in config.positions.items():
+        process_position(context, k, v, vpd)
 
 
 def process_excel_file_data(file, config: ExcelConfig) -> ValuationReportData:

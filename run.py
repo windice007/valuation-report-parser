@@ -9,7 +9,6 @@ if __name__ == "__main__":
     config.start_row = 1
     config.global_data["valuation_date"] = DataCell("A3")
     config.global_data["product_code"] = DataCell("A1", "^(\w+)资产估值表")
-    config.BUSIPOSBOND = []
 
     d1 = PositionDefine()
     d1.default = {
@@ -32,7 +31,9 @@ if __name__ == "__main__":
     s1.values.append(v1)
 
     d1.subjects.append(s1)
-    config.BUSIPOSBOND.append(d1)
+
+    config.positions["BUSIPOSBOND"] = []
+    config.positions["BUSIPOSBOND"].append(d1)
 
     vpd = process(file, config)
 
