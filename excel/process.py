@@ -74,6 +74,10 @@ def process_position(context: ProcessContext,  pos_type: str):
 
                         if t_code not in data:
                             data[t_code] = Model()
+                            if pd.default:
+                                obj = data[t_code]
+                                for k, v in pd.default.items():
+                                    setattr(obj, k, v)
 
                         obj = data[t_code]
 
