@@ -1,5 +1,8 @@
 
 
+import re
+
+
 _INDICES = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 
@@ -25,3 +28,11 @@ def excel_column_index(index_chars):
         return -1
     else:
         return _get_index(index_chars.upper())
+
+
+def is_position_str(pos: str):
+    return (isinstance(pos, str) and re.match("^[A-Za-z]+[0-9]+$", pos)) is not None
+
+
+def is_position_column_str(pos: str):
+    return (isinstance(pos, str) and re.match("^[A-Za-z]+$", pos)) is not None
