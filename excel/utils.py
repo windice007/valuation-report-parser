@@ -1,4 +1,4 @@
-from excel.define import DataCell, ExcelConfig, PositionDefine, SubjectDefine, ValueDefine
+from excel.define import DataCell, ExcelConfig, PositionDefine, ProductDefine, SubjectDefine, ValueDefine
 
 
 def obj_json_hook(dic: dict):
@@ -13,6 +13,8 @@ def obj_json_hook(dic: dict):
         obj = DataCell()
     if "start_row" in dic and "global_data" in dic:
         obj = ExcelConfig()
+    if "model" in dic and "values" in dic:
+        obj = ProductDefine()
     if obj is None:
         return dic
     else:

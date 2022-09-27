@@ -43,6 +43,11 @@
                 "subject_code": "昨日单位净值：",
                 "column": "ACCU_UNIT_NAV",
                 "cell": "C"
+            },
+            {
+                "subject_code": "资产类合计：",
+                "column": "PE_TOTAL_ASSET",
+                "cell": "I"
             }
         ]
     }

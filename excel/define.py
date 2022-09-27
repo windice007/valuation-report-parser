@@ -40,6 +40,12 @@ class PositionDefine:
         self.subjects = []
 
 
+class ProductDefine:
+    def __init__(self) -> None:
+        self.model = None
+        self.values: List[ValueDefine] = []
+
+
 class ExcelConfig:
     def __init__(self) -> None:
         self.start_row = 4
@@ -47,3 +53,4 @@ class ExcelConfig:
         self.subject_code_column = "B"
         self.subject_code_detail_regex = r"^(\d{8})(.+)$"
         self.positions = {}
+        self.product: ProductDefine | None = None
