@@ -1,40 +1,35 @@
+import json
 from excel import process_excel_file_data as process, ExcelConfig, DataCell
 from excel.define import PositionDefine, SubjectDefine, ValueDefine
+
+
+def obj_json_default(obj):
+    return obj.__dict__
+
+
+def obj_json_hook(dic: dict):
+    obj = None
+    if "default" in dic and "subjects" in dic:
+        obj = PositionDefine()
+    if "code" in dic and "values" in dic:
+        obj = SubjectDefine()
+    if "cell" in dic and "column" in dic:
+        obj = ValueDefine()
+    if "address" in dic and "capture_regex" in dic:
+        obj = DataCell()
+    if "start_row" in dic and "global_data" in dic:
+        obj = ExcelConfig()
+    if obj is None:
+        return dic
+    else:
+        obj.__dict__ = dic
+        return obj
+
 
 if __name__ == "__main__":
 
     file = "d:/纯固收产品2估值表2021-07-02.xls"
-
-    config = ExcelConfig()
-    config.start_row = 1
-    config.global_data["valuation_date"] = DataCell("A3")
-    config.global_data["product_code"] = DataCell("A1", "^(\w+)资产估值表")
-
-    d1 = PositionDefine()
-    d1.default = {
-        "AMT": 100.2
-    }
-    d1.subjects = []
-
-    s1 = SubjectDefine()
-    s1.code = "11030401"
-    s1.values = []
-
-    v1 = ValueDefine()
-    v1.cell = DataCell("C")
-    v1.column = "SYMBOL"
-    s1.values.append(v1)
-
-    v1 = ValueDefine()
-    v1.cell = DataCell("D")
-    v1.column = "CURRENCY"
-    s1.values.append(v1)
-
-    d1.subjects.append(s1)
-
-    config.positions["BUSIPOSBOND"] = []
-    config.positions["BUSIPOSBOND"].append(d1)
-
-    vpd = process(file, config)
-
-    print()
+    with open('config.json', 'r', encoding="utf-8") as f:
+        config = json.load(f, object_hook=obj_json_hook)
+        vpd = process(file, config)
+        print(vpd)

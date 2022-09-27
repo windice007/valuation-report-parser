@@ -1,0 +1,45 @@
+{
+    "start_row": 1,
+    "global_data": {
+        "valuation_date": {
+            "address": "A3",
+            "capture_regex": null
+        },
+        "product_code": {
+            "address": "A1",
+            "capture_regex": "^(\\w+)资产估值表"
+        }
+    },
+    "subject_code_column": "B",
+    "subject_code_detail_regex": "^(\\d{8})(.+)$",
+    "positions": {
+        "BUSIPOSBOND": [
+            {
+                "default": {
+                    "AMT": 100.2
+                },
+                "subjects": [
+                    {
+                        "code": "11030401",
+                        "values": [
+                            {
+                                "column": "SYMBOL",
+                                "cell": {
+                                    "address": "C",
+                                    "capture_regex": null
+                                }
+                            },
+                            {
+                                "column": "CURRENCY",
+                                "cell": {
+                                    "address": "D",
+                                    "capture_regex": null
+                                }
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+}

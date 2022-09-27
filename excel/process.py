@@ -22,9 +22,6 @@ class ProcessContext:
 
 
 class ValuationReportData:
-    productCode: str | None = None
-    productName: str | None = None
-    valuationDate: str | None = None
     details = {}
     summaries = []
 
