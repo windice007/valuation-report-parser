@@ -1,4 +1,5 @@
 
+from dataclasses import dataclass
 from itertools import product
 import re
 import pyexcel as p
@@ -72,7 +73,11 @@ def process_position(context: ProcessContext,  pos_type: str, defines: List[Posi
                             vpd.details[t_code] = obj
                             if pd.default:
                                 for k, v in pd.default.items():
-                                    setattr(obj, k, v)
+                                    if isinstance(v, DataCell):
+                                        setattr(
+                                            obj, k, capture_data(context, v))
+                                    else:
+                                        setattr(obj, k, v)
 
                         obj = vpd.details[t_code]
 
@@ -103,11 +108,12 @@ def process_product(context: ProcessContext, vpd: ValuationReportData):
         subject_map[code] = i
 
     for v in pro.values:
-        if v.subject_code in subject_map:
+        cell = v.cell
+        if cell.subject_code in subject_map:
             setattr(m, v.column, capture_data(
-                context, v.cell, subject_map[v.subject_code]))
+                context, cell, subject_map[cell.subject_code]))
         else:
-            raise Exception("科目未找到:{}".format(v.subject_code))
+            raise Exception("科目未找到:{}".format(cell.subject_code))
 
     vpd.product = m
 
@@ -115,9 +121,6 @@ def process_product(context: ProcessContext, vpd: ValuationReportData):
 def process_excel_file_data(file, config: ExcelConfig) -> ValuationReportData:
     sheet = p.get_sheet(file_name=file)
     context = ProcessContext(sheet, config)
-
-    for k, v in config.global_data.items():
-        context.global_data[k] = capture_data(context, v)
 
     vpd = ValuationReportData()
     process_positions(context, vpd)

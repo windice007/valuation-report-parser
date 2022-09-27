@@ -1,22 +1,16 @@
 {
     "start_row": 1,
-    "global_data": {
-        "valuation_date": {
-            "address": "A3",
-            "capture_regex": null
-        },
-        "product_code": {
-            "address": "A1",
-            "capture_regex": "^(\\w+)资产估值表"
-        }
-    },
     "subject_code_column": "B",
     "subject_code_detail_regex": "^(\\d{8})(.+)$",
     "positions": {
         "BUSIPOSBOND": [
             {
                 "default": {
-                    "AMT": 100.2
+                    "AMT": 100.2,
+                    "PRODUCT_CODE": {
+                        "address": "A1",
+                        "capture_regex": "^(\\w+)资产估值表"
+                    }
                 },
                 "subjects": [
                     {
@@ -40,14 +34,18 @@
         "model": "BUSIVALASSET",
         "values": [
             {
-                "subject_code": "昨日单位净值：",
                 "column": "ACCU_UNIT_NAV",
-                "cell": "C"
+                "cell": {
+                    "address": "C",
+                    "subject_code": "昨日单位净值："
+                }
             },
             {
-                "subject_code": "资产类合计：",
                 "column": "PE_TOTAL_ASSET",
-                "cell": "I"
+                "cell": {
+                    "address": "I",
+                    "subject_code": "资产类合计："
+                }
             }
         ]
     }

@@ -3,21 +3,21 @@ from typing import List
 
 
 class DataCell:
+    subject_code: str | None = None
     address: str | None = None
     capture_regex: str | None = None
 
     def __init__(self, address=None, regex=None):
         self.address = address
         self.capture_regex = regex
+        self.subject_code = None
 
 
 class ValueDefine:
-    subject_code: str = None
-    column: str = None
-    cell: DataCell = None
+    column: str | None = None
+    cell: DataCell | None = None
 
     def __init__(self) -> None:
-        self.subject_code = None
         self.column = None
         self.cell = None
 
@@ -49,7 +49,6 @@ class ProductDefine:
 class ExcelConfig:
     def __init__(self) -> None:
         self.start_row = 4
-        self.global_data = {}
         self.subject_code_column = "B"
         self.subject_code_detail_regex = r"^(\d{8})(.+)$"
         self.positions = {}
