@@ -24,21 +24,25 @@
                         "values": [
                             {
                                 "column": "SYMBOL",
-                                "cell": {
-                                    "address": "C",
-                                    "capture_regex": null
-                                }
+                                "cell": "C"
                             },
                             {
                                 "column": "CURRENCY",
-                                "cell": {
-                                    "address": "D",
-                                    "capture_regex": null
-                                }
+                                "cell": "D"
                             }
                         ]
                     }
                 ]
+            }
+        ]
+    },
+    "product": {
+        "model": "BUSIVALASSET",
+        "values": [
+            {
+                "subject_code": "昨日单位净值：",
+                "column": "ACCU_UNIT_NAV",
+                "cell": "C"
             }
         ]
     }
