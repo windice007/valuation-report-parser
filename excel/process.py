@@ -1,12 +1,10 @@
 
-from dataclasses import dataclass
-from itertools import product
 import re
 import pyexcel as p
 from typing import List
 from excel.define import DataCell, ExcelConfig, PositionDefine
 from pyexcel.sheet import Sheet
-from base.utils import excel_column_index
+from base.utils import excel_column_index, is_position_str
 import model.mysql_models as MODEL
 
 
@@ -14,7 +12,7 @@ class ProcessContext:
     sheet: Sheet | None = None
     subject_column: int | None = None
     config: ExcelConfig | None = None
-    global_data: dict = {}
+    subject_row_map: dict = {}
 
     def __init__(self, sheet: Sheet, config: ExcelConfig) -> None:
         self.sheet = sheet
@@ -32,11 +30,18 @@ def capture_data(context: ProcessContext, cell: DataCell, row: int = None) -> st
     if cell == None or cell.address == None:
         return None
     cell_value = None
-    if row is None:
+    if is_position_str(cell.address):
         cell_value = sheet[cell.address]
     else:
         column_index = excel_column_index(cell.address)
-        cell_value = sheet.cell_value(row, column_index)
+        if row is None:
+            if cell.subject_code in context.subject_row_map:
+                r = context.subject_row_map[cell.subject_code]
+                cell_value = sheet.cell_value(r, column_index)
+            else:
+                raise Exception("未找到指定的科目:{}".format(cell.subject_code))
+        else:
+            cell_value = sheet.cell_value(row, column_index)
 
     if cell.capture_regex != None:
         match = re.search(re.compile(cell.capture_regex), cell_value)
@@ -95,32 +100,23 @@ def process_positions(context: ProcessContext, vpd: ValuationReportData):
 
 def process_product(context: ProcessContext, vpd: ValuationReportData):
     pro = context.config.product
-    sheet = context.sheet
     Model = getattr(MODEL, pro.model)
 
     m = Model()
-    subject_map = {}
-
-    for i in range(len(sheet)):
-        code = sheet.cell_value(i, context.subject_column)
-        if code == '' or code == None:
-            continue
-        subject_map[code] = i
-
     for v in pro.values:
-        cell = v.cell
-        if cell.subject_code in subject_map:
-            setattr(m, v.column, capture_data(
-                context, cell, subject_map[cell.subject_code]))
-        else:
-            raise Exception("科目未找到:{}".format(cell.subject_code))
-
+        setattr(m, v.column, capture_data(context, v.cell))
     vpd.product = m
 
 
 def process_excel_file_data(file, config: ExcelConfig) -> ValuationReportData:
     sheet = p.get_sheet(file_name=file)
     context = ProcessContext(sheet, config)
+
+    for i in range(len(sheet)):
+        code = sheet.cell_value(i, context.subject_column)
+        if code == '' or code == None:
+            continue
+        context.subject_row_map[code] = i
 
     vpd = ValuationReportData()
     process_positions(context, vpd)

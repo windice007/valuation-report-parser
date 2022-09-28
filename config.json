@@ -10,6 +10,10 @@
                     "PRODUCT_CODE": {
                         "address": "A1",
                         "capture_regex": "^(\\w+)资产估值表"
+                    },
+                    "PS_COST": {
+                        "address": "C",
+                        "subject_code": "昨日单位净值："
                     }
                 },
                 "subjects": [
