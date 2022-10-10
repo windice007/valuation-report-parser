@@ -21,8 +21,9 @@ class ProcessContext:
 
 
 class ValuationReportData:
-    details = {}
-    product = None
+    def __init__(self) -> None:
+        self.details = {}
+        self.product = None
 
 
 def capture_data(context: ProcessContext, cell: DataCell, row: int = None) -> str:
