@@ -3,7 +3,7 @@
     "subject_code_column": "B",
     "subject_code_detail_regex": "^(\\d{8})(.+)$",
     "positions": {
-        "BUSIPOSBOND": [
+        "INDICBASEPOSBOND": [
             {
                 "default": {
                     "AMT": 100.2,
@@ -35,7 +35,7 @@
         ]
     },
     "product": {
-        "model": "BUSIVALASSET",
+        "model": "INDICBASEVALASSET",
         "values": [
             {
                 "column": "ACCU_UNIT_NAV",
