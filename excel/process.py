@@ -71,7 +71,7 @@ def process_position(context: ProcessContext,  pos_type: str, defines: List[Posi
                     config.subject_code_detail_regex), code)
                 if match:
                     s_code = match[1]
-                    if s_code == sd.code:
+                    if re.search(sd.code, s_code):
                         t_code = match[2]
 
                         if t_code not in vpd.details:

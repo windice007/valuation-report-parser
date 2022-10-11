@@ -11,7 +11,7 @@ import glob
 
 
 def current_dir_files():
-    return glob.glob("*.xls*")
+    return glob.glob("*.xls")+glob.glob("*.xlsx")
 
 
 if __name__ == "__main__":
