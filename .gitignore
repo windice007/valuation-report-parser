@@ -6,3 +6,5 @@ __pycache__
 /run.spec
 /*.xls
 /*.xlsx
+/*.json
+!/config.json

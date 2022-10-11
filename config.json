@@ -6,14 +6,12 @@
         "INDICBASEPOSBOND": [
             {
                 "default": {
-                    "AMT": 100.2,
-                    "PRODUCT_CODE": {
-                        "address": "A1",
-                        "capture_regex": "^(\\w+)资产估值表"
-                    },
-                    "PS_COST": {
-                        "address": "C",
-                        "subject_code": "昨日单位净值："
+                    "PRODUCT_CODE": 11030401,
+                    "PORTFOLIO_TYPE": "PRODUCT",
+                    "PORTFOLIO_CODE": 11030401,
+                    "CURRENCY": "CNY",
+                    "BUSI_DATE": {
+                        "address": "A3"
                     }
                 },
                 "subjects": [
@@ -21,12 +19,48 @@
                         "code": "11030401",
                         "values": [
                             {
-                                "column": "SYMBOL",
+                                "column": "SECU_CODE",
+                                "cell": {
+                                    "address": "B",
+                                    "capture_regex": "_(\\d+)\\."
+                                }
+                            },
+                            {
+                                "column": "SECU_NAME",
                                 "cell": "C"
                             },
                             {
-                                "column": "CURRENCY",
-                                "cell": "D"
+                                "column": "PE_VALUATION_QTY",
+                                "cell": "F"
+                            },
+                            {
+                                "column": "PE_UNIT_COST",
+                                "cell": "G"
+                            },
+                            {
+                                "column": "PE_COST",
+                                "cell": "H"
+                            },
+                            {
+                                "column": "PE_VALUATION_PRICE",
+                                "cell": "K"
+                            },
+                            {
+                                "column": "PE_MKTV",
+                                "cell": "L"
+                            },
+                            {
+                                "column": "BD_FLOAT_PNL",
+                                "cell": "O"
+                            }
+                        ]
+                    },
+                    {
+                        "code": "12040504",
+                        "values": [
+                            {
+                                "column": "PE_AI",
+                                "cell": "H"
                             }
                         ]
                     }
