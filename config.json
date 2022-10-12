@@ -19,37 +19,37 @@
                             {
                                 "column": "SECU_CODE",
                                 "cell": {
-									"address": "B",
-									"capture_regex": "_(\\d+)\\."
-								}
+                                    "address": "B",
+                                    "capture_regex": "_(\\d+)\\."
+                                }
                             },
-							{
+                            {
                                 "column": "PRODUCT_CODE",
                                 "cell": {
-									"address": "B",
-									"capture_regex": "^(\\w{8})"
-								}
+                                    "address": "B",
+                                    "capture_regex": "^(\\w{8})"
+                                }
                             },
-							{
+                            {
                                 "column": "PORTFOLIO_CODE",
                                 "cell": {
-									"address": "B",
-									"capture_regex": "^(\\w{8})"
-								}
+                                    "address": "B",
+                                    "capture_regex": "^(\\w{8})"
+                                }
                             },
                             {
                                 "column": "SYMBOL",
                                 "cell": {
-									"address": "B",
-									"capture_regex": "_(\\d+)\\."
-								}
+                                    "address": "B",
+                                    "capture_regex": "_(\\d+)\\."
+                                }
                             },
                             {
                                 "column": "MARKET_CODE",
-								"cell": {
-									"address": "B",
-									"capture_regex": "\\.(\\w+)"
-								}
+                                "cell": {
+                                    "address": "B",
+                                    "capture_regex": "\\.(\\w+)"
+                                }
                             },
                             {
                                 "column": "SECU_NAME",
@@ -97,146 +97,146 @@
     "product": {
         "model": "INDICBASEVALASSET",
         "values": [
-		    {
+            {
                 "column": "BUSI_DATE",
                 "cell": {
                     "address": "A3"
                 }
             },
-			{
+            {
                 "column": "PE_TOTAL_ASSET",
                 "cell": {
                     "address": "M",
                     "subject_code": "资产类合计："
                 }
             },
-			{
+            {
                 "column": "PE_TOTAL_ASSET_COST",
                 "cell": {
                     "address": "I",
                     "subject_code": "资产类合计："
                 }
             },
-			{
+            {
                 "column": "PE_TOTAL_LIABILITIES",
                 "cell": {
                     "address": "M",
                     "subject_code": "负债类合计："
                 }
             },
-			{
+            {
                 "column": "PE_NET_ASSET",
                 "cell": {
                     "address": "M",
                     "subject_code": "产品资产净值-费后："
                 }
             },
-			{
+            {
                 "column": "PE_SHARES",
                 "cell": {
                     "address": "F",
                     "subject_code": "实收资本："
                 }
             },
-			{
+            {
                 "column": "PE_UNIT_NAV",
                 "cell": {
                     "address": "C",
                     "subject_code": "产品单位净值-费后："
                 }
             },
-			{
+            {
                 "column": "ACCU_UNIT_NAV",
                 "cell": {
                     "address": "C",
                     "subject_code": "产品累计单位净值："
                 }
             },
-			{
+            {
                 "column": "TOTAL_DEPOSIT_AMT",
                 "cell": {
                     "address": "M",
                     "subject_code": "1002"
                 }
             },
-			{
+            {
                 "column": "PE_CURRENT_DEPOSIT_AMT",
                 "cell": {
                     "address": "M",
                     "subject_code": "100201"
                 }
             },
-			{
+            {
                 "column": "PE_CURRENT_DEPOSIT_AI",
                 "cell": {
                     "address": "M",
                     "subject_code": "12040101"
                 }
             },
-			{
+            {
                 "column": "INTEREST_RECEIVABLE",
                 "cell": {
                     "address": "I",
                     "subject_code": "1204"
                 }
             },
-			{
+            {
                 "column": "CAPITAL_AMT",
                 "cell": {
                     "address": "M",
                     "subject_code": "实收资本："
                 }
             },
-			{
+            {
                 "column": "PE_SUBSCRIBE_RECEIVABLE_AMT",
                 "cell": {
                     "address": "M",
                     "subject_code": "1207"
                 }
             },
-			{
+            {
                 "column": "PE_PAYABLE_SALES_FEE",
                 "cell": {
                     "address": "M",
                     "subject_code": "2208"
                 }
             },
-			{
+            {
                 "column": "PE_PAYABLE_CUSTODIAN_FEE",
                 "cell": {
                     "address": "M",
                     "subject_code": "2207"
                 }
             },
-			{
+            {
                 "column": "PE_PAYABLE_TAX",
                 "cell": {
                     "address": "M",
                     "subject_code": "2221"
                 }
             },
-			{
+            {
                 "column": "PE_PAYABLE_INTEREST",
                 "cell": {
                     "address": "M",
                     "subject_code": "2231"
                 }
             },
-			{
+            {
                 "column": "PE_PAYABLE_TRADING_FEE",
                 "cell": {
                     "address": "M",
                     "subject_code": "2209"
                 }
             },
-			{
+            {
                 "column": "PE_PAYABLE_MGT_FEE",
                 "cell": {
                     "address": "M",
                     "subject_code": "2206"
                 }
             },
-			{
+            {
                 "column": "DEVIATION",
                 "cell": {
                     "address": "C",
@@ -256,6 +256,17 @@
                     "address": "I",
                     "subject_code": "资产类合计："
                 }
+            },
+            {
+                "column": "_A",
+                "cell": {
+                    "address": "I",
+                    "subject_code": "资产类合计："
+                }
+            },
+            {
+                "column": "TEST_TEST",
+                "formula": "PE_PAYABLE_TRADING_FEE+PE_PAYABLE_MGT_FEE+_A"
             }
         ]
     }

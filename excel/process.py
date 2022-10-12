@@ -109,7 +109,11 @@ def process_product(context: ProcessContext, vpd: ValuationReportData):
 
     m = Model()
     for v in pro.values:
-        setattr(m, v.column, capture_data(context, v.cell))
+        if v.cell:
+            setattr(m, v.column, capture_data(context, v.cell))
+        else:
+            d = eval(v.formula, None, m.__dict__)
+            setattr(m, v.column, d)
     vpd.product = m
 
 

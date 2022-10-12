@@ -15,10 +15,12 @@ class DataCell:
 class ValueDefine:
     column: str | None = None
     cell: DataCell | None = None
+    formula: str | None = None
 
     def __init__(self) -> None:
         self.column = None
         self.cell = None
+        self.formula = None
 
 
 class SubjectDefine:
