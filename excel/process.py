@@ -89,7 +89,11 @@ def process_position(context: ProcessContext,  pos_type: str, defines: List[Posi
 
                         for vd in sd.values:
                             d = capture_data(context, vd.cell, i)
-                            setattr(obj, vd.column, d)
+                            v = getattr(obj, vd.column)
+                            if v is None:
+                                setattr(obj, vd.column, d)
+                            else:
+                                setattr(obj, vd.column, d+v)
 
 
 def process_positions(context: ProcessContext, vpd: ValuationReportData):
