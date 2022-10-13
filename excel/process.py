@@ -2,7 +2,7 @@
 import re
 import pyexcel as p
 from typing import List
-from excel.define import DataCell, ExcelConfig, PositionDefine
+from excel.define import DataCell, ExcelConfig, PositionDefine, ValueDefine
 from pyexcel.sheet import Sheet
 from base.utils import excel_column_index, is_position_str
 import model.mysql_models as MODEL
@@ -54,6 +54,13 @@ def capture_data(context: ProcessContext, cell: DataCell, row: int = None) -> st
     return cell_value
 
 
+def set_value(obj: object, vd: ValueDefine, v: any):
+    if isinstance(vd.mapping, dict) and v in vd.mapping:
+        setattr(obj, vd.column, vd.mapping.get(v))
+    else:
+        setattr(obj, vd.column, v)
+
+
 def process_position(context: ProcessContext,  pos_type: str, defines: List[PositionDefine], vpd: ValuationReportData):
     if not isinstance(defines, list):
         return
@@ -88,12 +95,17 @@ def process_position(context: ProcessContext,  pos_type: str, defines: List[Posi
                         obj = vpd.details[t_code]
 
                         for vd in sd.values:
-                            d = capture_data(context, vd.cell, i)
+                            d = None
+                            if vd.cell:
+                                d = capture_data(context, vd.cell, i)
+                            else:
+                                d = eval(vd.formula, None, obj.__dict__)
+
                             v = getattr(obj, vd.column)
                             if v is None:
-                                setattr(obj, vd.column, d)
+                                set_value(obj, vd, d)
                             else:
-                                setattr(obj, vd.column, d+v)
+                                set_value(obj, vd, d+v)
 
 
 def process_positions(context: ProcessContext, vpd: ValuationReportData):
@@ -110,10 +122,10 @@ def process_product(context: ProcessContext, vpd: ValuationReportData):
     m = Model()
     for v in pro.values:
         if v.cell:
-            setattr(m, v.column, capture_data(context, v.cell))
+            set_value(m, v, capture_data(context, v.cell))
         else:
             d = eval(v.formula, None, m.__dict__)
-            setattr(m, v.column, d)
+            set_value(m, v, d)
     vpd.product = m
 
 
