@@ -1,4 +1,4 @@
 # 估值表导入原型
 
 # 代码生成
-sqlacodegen mysql+pymysql://qtrw_platodev:QTdev_2021@10.10.23.102:3306/plato_idx --noviews --noindexes --noconstraints --nojoined --tables INDIC_BASE_POS_STOCK,INDIC_BASE_POS_BOND,INDIC_BASE_POS_DEPOSIT,INDIC_BASE_POS_FUND,INDIC_BASE_POS_FUTURE,INDIC_BASE_POS_OPTION,INDIC_BASE_POS_REPO,INDIC_BASE_POS_NONSTD,INDIC_BASE_POS_BOND_LEND,INDIC_BASE_VAL_ASSET > ./model/mysql_models.py
+sqlacodegen mysql+pymysql://qtrw_platodev:QTdev_2021@10.10.23.102:3306/plato_idx --noviews --noindexes --noconstraints --nojoined --tables INDIC_BASE_POS_STOCK,INDIC_BASE_POS_BOND,INDIC_BASE_POS_DEPOSIT,INDIC_BASE_POS_FUND,INDIC_BASE_POS_FUTURE,INDIC_BASE_POS_OPTION,INDIC_BASE_POS_REPO,INDIC_BASE_POS_NONSTD,INDIC_BASE_POS_BOND_LEND,INDIC_BASE_VAL_ASSET,VALUATION_PORT_POS_DTL > ./model/mysql_models.py
