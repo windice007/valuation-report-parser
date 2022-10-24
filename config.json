@@ -53,7 +53,14 @@
                             },
                             {
                                 "column": "SECU_NAME",
-                                "cell": "C"
+                                "cell": {
+                                    "capture_regex": "-(.{3})",
+                                    "address": "C",
+                                    "subject_code": {
+                                        "address": "B",
+                                        "capture_regex": "^(\\d{6})"
+                                    }
+                                }
                             },
                             {
                                 "column": "PE_VALUATION_QTY",

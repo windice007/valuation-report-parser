@@ -35,12 +35,13 @@ def capture_data(context: ProcessContext, cell: DataCell, row: int = None) -> st
         cell_value = sheet[cell.address]
     else:
         column_index = excel_column_index(cell.address)
-        if row is None:
-            if cell.subject_code in context.subject_row_map:
-                r = context.subject_row_map[cell.subject_code]
+        subject_code = get_cell_subject_code(context, cell, row)
+        if isinstance(subject_code, str):
+            if subject_code in context.subject_row_map:
+                r = context.subject_row_map[subject_code]
                 cell_value = sheet.cell_value(r, column_index)
             else:
-                raise Exception("未找到指定的科目:{}".format(cell.subject_code))
+                raise Exception("未找到指定的科目:{}".format(subject_code))
         else:
             cell_value = sheet.cell_value(row, column_index)
 
@@ -49,9 +50,19 @@ def capture_data(context: ProcessContext, cell: DataCell, row: int = None) -> st
         if match:
             groups = match.groups()
             if len(groups) > 0:
-                return match[1]
-            return match[0]
+                cell_value = match[1]
+            else:
+                cell_value = match[0]
+
+    if isinstance(cell.mapping, dict) and cell_value in cell.mapping:
+        cell_value = cell.mapping.get(cell_value)
     return cell_value
+
+
+def get_cell_subject_code(context: ProcessContext, cell: DataCell, row: int = None) -> str:
+    if isinstance(cell.subject_code, DataCell):
+        return capture_data(context, cell.subject_code, row)
+    return cell.subject_code
 
 
 def set_value(obj: object, vd: ValueDefine, v: any):

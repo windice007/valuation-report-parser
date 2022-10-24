@@ -5,11 +5,13 @@ class DataCell:
     subject_code: str | None = None
     address: str | None = None
     capture_regex: str | None = None
+    mapping: dict | None = None
 
     def __init__(self, address=None, regex=None):
         self.address = address
         self.capture_regex = regex
         self.subject_code = None
+        self.mapping = None
 
 
 class ValueDefine:
