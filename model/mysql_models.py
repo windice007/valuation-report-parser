@@ -1,5 +1,5 @@
 # coding: utf-8
-from sqlalchemy import Column, DECIMAL, Date, DateTime, String, text
+from sqlalchemy import Column, DECIMAL, Date, DateTime, Float, String, text
 from sqlalchemy.dialects.mysql import VARCHAR
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -720,6 +720,78 @@ class INDICBASEVALASSET(Base):
     DAILY_TRADING_EXPENSE = Column(DECIMAL(22, 4), comment='交易费用_当日发生额')
     DAILY_INTEREST_EXPENSE = Column(DECIMAL(22, 4), comment='利息支出_当日发生额')
     DAILY_OTHER_EXPENSE = Column(DECIMAL(22, 4), comment='其他费用_当日发生额')
+
+
+class VALUATIONPORTIND(Base):
+    __tablename__ = 'VALUATION_PORT_IND'
+    __table_args__ = {'comment': '组合指标表'}
+
+    BUSI_DATE = Column(Date, primary_key=True, nullable=False, comment='业务日期')
+    PRODUCT_CODE = Column(String(100), primary_key=True, nullable=False, comment='产品代码')
+    PORTFOLIO_TYPE = Column(String(100), primary_key=True, nullable=False, comment='投资组合类型')
+    PORTFOLIO_CODE = Column(String(100), primary_key=True, nullable=False, comment='投资组合代码')
+    TOTAL_ASSET_MKTV = Column(Float(22, True), server_default=text("'0.0000'"), comment='总资产市值')
+    TOTAL_ASSET_COST = Column(Float(22, True), server_default=text("'0.0000'"), comment='总资产成本')
+    TOTAL_LIABILITIES_MKTV = Column(Float(22, True), server_default=text("'0.0000'"), comment='总负债市值')
+    TOTAL_LIABILITIES_COST = Column(Float(22, True), server_default=text("'0.0000'"), comment='总负债成本')
+    NET_ASSET_MKTV = Column(Float(22, True), server_default=text("'0.0000'"), comment='净资产市值')
+    NET_ASSET_COST = Column(Float(22, True), server_default=text("'0.0000'"), comment='净资产成本')
+    SHARES = Column(Float(22, True), server_default=text("'0.0000'"), comment='份额')
+    UNIT_NAV = Column(Float(22, True), server_default=text("'0.00000000'"), comment='单位净值')
+    ACCU_UNIT_NAV = Column(Float(22, True), server_default=text("'0.00000000'"), comment='累计单位净值')
+    ACCU_NAV_GROWTH_RATE = Column(Float(22, True), server_default=text("'0.00000000'"), comment='累计净值增长率')
+    MKTV_STOCK = Column(Float(22, True), server_default=text("'0.0000'"), comment='股票投资市值')
+    COST_STOCK = Column(Float(22, True), server_default=text("'0.0000'"), comment='股票投资成本')
+    MKTV_BOND = Column(Float(22, True), server_default=text("'0.0000'"), comment='债券投资市值')
+    COST_BOND = Column(Float(22, True), server_default=text("'0.0000'"), comment='债券投资成本')
+    MKTV_FUND = Column(Float(22, True), server_default=text("'0.0000'"), comment='基金投资市值')
+    COST_FUND = Column(Float(22, True), server_default=text("'0.0000'"), comment='基金投资成本')
+    MKTV_ASSET_BACK = Column(Float(22, True), server_default=text("'0.0000'"), comment='资产支持证券市值')
+    COST_ASSET_BACK = Column(Float(22, True), server_default=text("'0.0000'"), comment='资产支持证券成本')
+    COST_NONSTD = Column(Float(22, True), server_default=text("'0.0000'"), comment='非标成本')
+    MKTV_NONSTD = Column(Float(22, True), server_default=text("'0.0000'"), comment='非标市值')
+    MKTV_FUTURE = Column(Float(22, True), server_default=text("'0.0000'"), comment='期货投资市值')
+    MKTV_BUY_REPO = Column(Float(22, True), server_default=text("'0.0000'"), comment='卖出回购资产市值')
+    MKTV_SELL_REPO = Column(Float(22, True), server_default=text("'0.0000'"), comment='买入返售市值')
+    MKTV_FORWARD = Column(Float(22, True), server_default=text("'0.0000'"), comment='远期投资市值')
+    MKTV_OPTION = Column(Float(22, True), server_default=text("'0.0000'"), comment='权证投资市值')
+    COST_OPTION = Column(Float(22, True), server_default=text("'0.0000'"), comment='权证投资成本')
+    TOTAL_DEPOSIT_AMT = Column(Float(22, True), server_default=text("'0.0000'"), comment='银行存款总金额（1002 银行存款）')
+    CURRENT_DEPOSIT_AI = Column(Float(22, True), server_default=text("'0.00000000'"), comment='活期存款应计利息')
+    CURRENT_DEPOSIT_AMT = Column(Float(22, True), server_default=text("'0.0000'"), comment='活期存款金额（1002 银行存款 下级科目）')
+    INTEREST_RECEIVABLE = Column(Float(22, True), server_default=text("'0.00000000'"), comment='应收利息金额（1204）')
+    SETTLEMENT_AMT = Column(Float(22, True), server_default=text("'0.0000'"), comment='证券清算款（3003）')
+    CAPITAL_AMT = Column(Float(22, True), server_default=text("'0.0000'"), comment='实收资本金额（4001 实收基金）')
+    SETTLEMENT_FUND = Column(Float(22, True), server_default=text("'0.0000'"), comment='结算备付金（1021）')
+    SETTLEMENT_FUND_AI = Column(Float(22, True), server_default=text("'0.00000000'"), comment='备付金利息')
+    MARGIN_FUND_AI = Column(Float(22, True), server_default=text("'0.00000000'"), comment='保证金利息')
+    PROVISION_FEE = Column(Float(22, True), server_default=text("'0.0000'"), comment='预提费用（2501）')
+    SUBSCRIBE_RECEIVABLE_AMT = Column(Float(22, True), server_default=text("'0.0000'"), comment='应收申购款(1207)')
+    MKTV_DIVIDEND_RECEIVABLE = Column(Float(22, True), server_default=text("'0.0000'"), comment='应收股利（1203）')
+    OTHER_RECEIVABLE_AMT = Column(Float(22, True), server_default=text("'0.0000'"), comment='其他应收款（1221）')
+    PAYABLE_SALES_FEE = Column(Float(22, True), server_default=text("'0.0000'"), comment='应付销售服务费（2208）')
+    PAYABLE_CUSTODIAN_FEE = Column(Float(22, True), server_default=text("'0.0000'"), comment='应付托管费（2207）')
+    PAYABLE_TAX = Column(Float(22, True), server_default=text("'0.0000'"), comment='应付税费（2221）')
+    PAYABLE_REDEMPTION_AMT = Column(Float(22, True), server_default=text("'0.0000'"), comment='应付赎回款（2203）')
+    PAYABLE_REDEMPTION_FEE = Column(Float(22, True), server_default=text("'0.0000'"), comment='应付赎回费（2204）')
+    PAYABLE_INTEREST = Column(Float(22, True), server_default=text("'0.0000'"), comment='应付利息（2231）')
+    PAYABLE_PROFIT = Column(Float(22, True), server_default=text("'0.0000'"), comment='应付利润（2232）')
+    PAYABLE_TRADING_FEE = Column(Float(22, True), server_default=text("'0.0000'"), comment='应付交易费（2209）')
+    PAYABLE_MGT_FEE = Column(Float(22, True), server_default=text("'0.0000'"), comment='应付管理费（2206）')
+    PAYABLE_OTHER_AMT = Column(Float(22, True), server_default=text("'0.0000'"), comment='其他应付款（2241）')
+    MARGIN_FUND = Column(Float(22, True), server_default=text("'0.0000'"), comment='存出保证金（1031 存出保证金）')
+    SEVEN_DAYS_ANN_YIELD = Column(Float(22, True), server_default=text("'0.00000000'"), comment='七日年化收益')
+    PROFITPER10KSHARES = Column(Float(22, True), server_default=text("'0.00000000'"), comment='万份收益')
+    TOTAL_PROFIT_PER10KSHARES = Column(Float(22, True), server_default=text("'0.00000000'"), comment='累计万份收益')
+    NAV_DAILY_GROWTH_RATE = Column(Float(22, True), server_default=text("'0.00000000'"), comment='日单位净值增长率')
+    DAILY_RETURN = Column(Float(22, True), server_default=text("'0.00000000'"), comment='日收益率')
+    VALUE_ADDED_TAX = Column(Float(22, True), server_default=text("'0.0000'"), comment='增值税')
+    EDU_SURCHARGE_TAX = Column(Float(22, True), server_default=text("'0.0000'"), comment='教育附加税')
+    LOCAL_EDU_SURCHARGE_TAX = Column(Float(22, True), server_default=text("'0.0000'"), comment='地方教育附加税')
+    CONSTRUCTION_SURCHARGE_TAX = Column(Float(22, True), server_default=text("'0.0000'"), comment='城建附加税')
+    UNAMORTIZED_FEE = Column(Float(22, True), server_default=text("'0.0000'"), comment='待摊费用（1501）')
+    CREATE_TIME = Column(DateTime, comment='创建时间')
+    UPDATE_TIME = Column(DateTime, comment='更新时间')
 
 
 class VALUATIONPORTPOSDTL(Base):
