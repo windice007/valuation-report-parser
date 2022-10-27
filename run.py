@@ -12,7 +12,8 @@ import argparse
 
 
 def current_dir_files():
-    return glob.glob("*.xls")+glob.glob("*.xlsx")
+    result = glob.glob("*.xls")+glob.glob("*.xlsx")
+    return list(filter(lambda x: not x.startswith("~$"), result))
 
 
 if __name__ == "__main__":

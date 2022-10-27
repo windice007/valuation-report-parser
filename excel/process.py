@@ -1,5 +1,6 @@
 
 import re
+from timeit import repeat
 import pyexcel as p
 from typing import List
 from excel.define import DataCell, ExcelConfig, PositionDefine, ValueDefine
@@ -109,6 +110,7 @@ def process_position(context: ProcessContext,  pos_type: str, defines: List[Posi
 
     for pd in defines:
         for sd in pd.subjects:
+            repeat_checker = {}
             for i in range(len(sheet)):
                 code = sheet.cell_value(i, context.subject_column)
                 if code == '' or code == None:
@@ -133,6 +135,11 @@ def process_position(context: ProcessContext,  pos_type: str, defines: List[Posi
 
                         obj = vpd.details[t_code]
 
+                        if t_code in repeat_checker:
+                            logger.warn(f"同一处理科目下出现了重复匹配:[{t_code}@{sd.code}]")
+                        else:
+                            repeat_checker[t_code] = obj
+
                         for vd in sd.values:
                             d = None
                             if vd.cell:
@@ -140,7 +147,7 @@ def process_position(context: ProcessContext,  pos_type: str, defines: List[Posi
                             else:
                                 d = custom_eval(vd.formula, obj.__dict__)
 
-                            if d is None:
+                            if d is None or d == '':
                                 continue
 
                             v = getattr(obj, vd.column)
