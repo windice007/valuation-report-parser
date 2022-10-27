@@ -6,6 +6,9 @@ from excel.define import DataCell, ExcelConfig, PositionDefine, ValueDefine
 from pyexcel.sheet import Sheet
 from base.utils import excel_column_index, is_position_str
 import model.mysql_models as MODEL
+from base.logger import logger
+from sqlalchemy.orm.attributes import InstrumentedAttribute
+from decimal import Decimal
 
 
 class ProcessContext:
@@ -41,9 +44,13 @@ def capture_data(context: ProcessContext, cell: DataCell, row: int = None) -> st
                 r = context.subject_row_map[subject_code]
                 cell_value = sheet.cell_value(r, column_index)
             else:
-                raise Exception("未找到指定的科目:{}".format(subject_code))
+                # raise Exception("未找到指定的科目:{}".format(subject_code))
+                logger.warn(f"未找到指定的科目:{subject_code}")
         else:
             cell_value = sheet.cell_value(row, column_index)
+
+    if cell_value is None:
+        return None
 
     if cell.capture_regex != None:
         match = re.search(re.compile(cell.capture_regex), cell_value)
@@ -65,11 +72,32 @@ def get_cell_subject_code(context: ProcessContext, cell: DataCell, row: int = No
     return cell.subject_code
 
 
+def convert_str_to_decimal(v: str) -> Decimal:
+    if v == '':
+        return Decimal(0)
+    elif v.endswith("%"):
+        return Decimal(v.rstrip("%"))/100
+    else:
+        return Decimal(v)
+
+
 def set_value(obj: object, vd: ValueDefine, v: any):
     if isinstance(vd.mapping, dict) and v in vd.mapping:
-        setattr(obj, vd.column, vd.mapping.get(v))
-    else:
-        setattr(obj, vd.column, v)
+        v = vd.mapping.get(v)
+
+    if hasattr(type(obj), vd.column):
+        c_define: InstrumentedAttribute = getattr(type(obj), vd.column)
+        if c_define:
+            t = c_define.expression.type.python_type
+
+            if t is Decimal and isinstance(v, str):
+                v = convert_str_to_decimal(v)
+
+    setattr(obj, vd.column, v)
+
+
+def custom_eval(formula: str, local: dict):
+    return eval(formula, None, local)
 
 
 def process_position(context: ProcessContext,  pos_type: str, defines: List[PositionDefine], vpd: ValuationReportData):
@@ -110,7 +138,10 @@ def process_position(context: ProcessContext,  pos_type: str, defines: List[Posi
                             if vd.cell:
                                 d = capture_data(context, vd.cell, i)
                             else:
-                                d = eval(vd.formula, None, obj.__dict__)
+                                d = custom_eval(vd.formula, obj.__dict__)
+
+                            if d is None:
+                                continue
 
                             v = getattr(obj, vd.column)
                             if v is None:
@@ -135,7 +166,7 @@ def process_product(context: ProcessContext, vpd: ValuationReportData):
         if v.cell:
             set_value(m, v, capture_data(context, v.cell))
         else:
-            d = eval(v.formula, None, m.__dict__)
+            d = custom_eval(v.formula, m.__dict__)
             set_value(m, v, d)
     vpd.product = m
 

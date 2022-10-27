@@ -2,47 +2,31 @@ from typing import List
 
 
 class DataCell:
-    subject_code: str | None = None
-    address: str | None = None
-    capture_regex: str | None = None
-    mapping: dict | None = None
-
     def __init__(self, address=None, regex=None):
-        self.address = address
-        self.capture_regex = regex
-        self.subject_code = None
-        self.mapping = None
+        self.address: str = address
+        self.capture_regex: str = regex
+        self.subject_code: str = None
+        self.mapping: dict = None
 
 
 class ValueDefine:
-    column: str | None = None
-    cell: DataCell | None = None
-    formula: str | None = None
-    mapping: dict | None = None
-
     def __init__(self) -> None:
-        self.column = None
-        self.cell = None
-        self.formula = None
-        self.mapping = None
+        self.column: str = None
+        self.cell: DataCell = None
+        self.formula: str = None
+        self.mapping: dict = None
 
 
 class SubjectDefine:
-    code: str = None
-    values: List[ValueDefine] = None
-
     def __init__(self) -> None:
-        self.code = None
-        self.values = []
+        self.code: str | None = None
+        self.values: List[ValueDefine] = []
 
 
 class PositionDefine:
-    default: dict | None = None
-    subjects: List[SubjectDefine] = None
-
     def __init__(self) -> None:
-        self.default = {}
-        self.subjects = []
+        self.default: dict | None = {}
+        self.subjects: List[SubjectDefine] = []
 
 
 class ProductDefine:

@@ -1,99 +1,110 @@
 {
     "start_row": 1,
-    "subject_code_column": "B",
-    "subject_code_detail_regex": "^(\\d{8})(.+)$",
+    "subject_code_column": "A",
+    "subject_code_detail_regex": "^(.{10})\\.(.+)$",
     "positions": {
-        "INDICBASEPOSBOND": [
+        "VALUATIONPORTPOSDTL": [
             {
                 "default": {
-                    "PORTFOLIO_TYPE": "PRODUCT",
                     "CURRENCY": "CNY",
                     "BUSI_DATE": {
-                        "address": "A3"
+                        "address": "A4",
+                        "capture_regex": "日期：(.+)"
+                    },
+                    "PRODUCT_CODE": {
+                        "address": "A1",
+                        "capture_regex": "^(\\d{6})"
+                    },
+                    "PORTFOLIO_CODE": {
+                        "address": "A1",
+                        "capture_regex": "^(\\d{6})"
                     }
                 },
                 "subjects": [
                     {
-                        "code": "11030\\d+01",
+                        "code": "\\d{4}\\.\\w\\w\\.01",
                         "values": [
                             {
                                 "column": "SECU_CODE",
                                 "cell": {
-                                    "address": "B",
-                                    "capture_regex": "_(\\d+)\\."
-                                }
-                            },
-                            {
-                                "column": "PRODUCT_CODE",
-                                "cell": {
-                                    "address": "B",
-                                    "capture_regex": "^(\\w{8})"
-                                }
-                            },
-                            {
-                                "column": "PORTFOLIO_CODE",
-                                "cell": {
-                                    "address": "B",
-                                    "capture_regex": "^(\\w{8})"
+                                    "address": "A",
+                                    "capture_regex": "\\.(\\d{3,})"
                                 }
                             },
                             {
                                 "column": "SYMBOL",
                                 "cell": {
-                                    "address": "B",
-                                    "capture_regex": "_(\\d+)\\."
+                                    "address": "A",
+                                    "capture_regex": "\\.(\\d{3,})"
                                 }
                             },
                             {
                                 "column": "MARKET_CODE",
                                 "cell": {
-                                    "address": "B",
-                                    "capture_regex": "\\.(\\w+)"
+                                    "address": "A",
+                                    "capture_regex": "\\s(\\w+)"
                                 }
                             },
                             {
                                 "column": "SECU_NAME",
-                                "cell": {
-                                    "capture_regex": "-(.{3})",
-                                    "address": "C",
-                                    "subject_code": {
-                                        "address": "B",
-                                        "capture_regex": "^(\\d{6})"
-                                    }
-                                }
+                                "cell": "B"
                             },
                             {
-                                "column": "PE_VALUATION_QTY",
+                                "column": "HLD_QTY",
+                                "cell": "C"
+                            },
+                            {
+                                "column": "UNIT_COST_O",
+                                "cell": "D"
+                            },
+                            {
+                                "column": "UNIT_COST_L",
+                                "cell": "D"
+                            },
+                            {
+                                "column": "HLD_COST_O",
+                                "cell": "E"
+                            },
+                            {
+                                "column": "HLD_COST_L",
+                                "cell": "E"
+                            },
+                            {
+                                "column": "COST_NAV_RATE_L",
                                 "cell": "F"
                             },
                             {
-                                "column": "PE_UNIT_COST",
+                                "column": "VALUATION_PRICE",
                                 "cell": "G"
                             },
                             {
-                                "column": "PE_COST",
+                                "column": "HLD_MKTV_O",
                                 "cell": "H"
                             },
                             {
-                                "column": "PE_VALUATION_PRICE",
-                                "cell": "K"
+                                "column": "HLD_MKTV_L",
+                                "cell": "H"
                             },
                             {
-                                "column": "PE_MKTV",
-                                "cell": "L"
+                                "column": "MKTV_NAV_RATE_L",
+                                "cell": "I"
                             },
                             {
-                                "column": "BD_FLOAT_PNL",
-                                "cell": "O"
+                                "column": "VALUATION_ADD_AMT_L",
+                                "cell": "J"
                             }
                         ]
                     },
                     {
-                        "code": "12040504",
+                        "code": "1204",
                         "values": [
                             {
-                                "column": "PE_AI",
+                                "column": "ACCD_INTEREST_O",
                                 "cell": "H"
+                            },
+                            {
+                                "column": "ACCD_INTEREST_L",
+                                "cell": "I"
                             }
                         ]
                     }
@@ -102,178 +113,171 @@
         ]
     },
     "product": {
-        "model": "INDICBASEVALASSET",
+        "model": "VALUATIONPORTIND",
         "values": [
             {
                 "column": "BUSI_DATE",
                 "cell": {
-                    "address": "A3"
+                    "address": "A4"
                 }
             },
             {
-                "column": "PE_TOTAL_ASSET",
+                "column": "TOTAL_ASSET_MKTV",
                 "cell": {
-                    "address": "M",
-                    "subject_code": "资产类合计："
+                    "address": "H",
+                    "subject_code": "资产合计"
                 }
             },
             {
-                "column": "PE_TOTAL_ASSET_COST",
+                "column": "TOTAL_ASSET_COST",
                 "cell": {
-                    "address": "I",
-                    "subject_code": "资产类合计："
+                    "address": "E",
+                    "subject_code": "资产合计"
                 }
             },
             {
-                "column": "PE_TOTAL_LIABILITIES",
+                "column": "TOTAL_LIABILITIES_MKTV",
                 "cell": {
-                    "address": "M",
-                    "subject_code": "负债类合计："
+                    "address": "H",
+                    "subject_code": "负债合计"
                 }
             },
             {
-                "column": "PE_NET_ASSET",
+                "column": "TOTAL_LIABILITIES_COST",
                 "cell": {
-                    "address": "M",
-                    "subject_code": "产品资产净值-费后："
+                    "address": "E",
+                    "subject_code": "负债合计"
                 }
             },
             {
-                "column": "PE_SHARES",
+                "column": "__TEST",
+                "formula": "TOTAL_LIABILITIES_COST+TOTAL_LIABILITIES_MKTV"
+            },
+            {
+                "column": "SHARES",
                 "cell": {
-                    "address": "F",
-                    "subject_code": "实收资本："
+                    "address": "E",
+                    "subject_code": "实收资本"
                 }
             },
             {
-                "column": "PE_UNIT_NAV",
+                "column": "UNIT_NAV",
                 "cell": {
-                    "address": "C",
-                    "subject_code": "产品单位净值-费后："
+                    "address": "B",
+                    "subject_code": "今日单位净值"
                 }
             },
             {
                 "column": "ACCU_UNIT_NAV",
                 "cell": {
-                    "address": "C",
-                    "subject_code": "产品累计单位净值："
+                    "address": "B",
+                    "subject_code": "累计单位净值"
                 }
             },
             {
                 "column": "TOTAL_DEPOSIT_AMT",
                 "cell": {
-                    "address": "M",
+                    "address": "E",
                     "subject_code": "1002"
                 }
             },
             {
-                "column": "PE_CURRENT_DEPOSIT_AMT",
+                "column": "CURRENT_DEPOSIT_AMT",
                 "cell": {
-                    "address": "M",
-                    "subject_code": "100201"
+                    "address": "E",
+                    "subject_code": "1002.01"
                 }
             },
             {
-                "column": "PE_CURRENT_DEPOSIT_AI",
+                "column": "CURRENT_DEPOSIT_AI",
                 "cell": {
-                    "address": "M",
-                    "subject_code": "12040101"
+                    "address": "E",
+                    "subject_code": "1204.01.01"
                 }
             },
             {
                 "column": "INTEREST_RECEIVABLE",
                 "cell": {
-                    "address": "I",
+                    "address": "E",
                     "subject_code": "1204"
                 }
             },
             {
                 "column": "CAPITAL_AMT",
                 "cell": {
-                    "address": "M",
-                    "subject_code": "实收资本："
+                    "address": "E",
+                    "subject_code": "实收资本"
                 }
             },
             {
-                "column": "PE_SUBSCRIBE_RECEIVABLE_AMT",
+                "column": "SUBSCRIBE_RECEIVABLE_AMT",
                 "cell": {
-                    "address": "M",
+                    "address": "E",
                     "subject_code": "1207"
                 }
             },
             {
-                "column": "PE_PAYABLE_SALES_FEE",
+                "column": "PAYABLE_SALES_FEE",
                 "cell": {
-                    "address": "M",
+                    "address": "E",
                     "subject_code": "2208"
                 }
             },
             {
-                "column": "PE_PAYABLE_CUSTODIAN_FEE",
+                "column": "PAYABLE_CUSTODIAN_FEE",
                 "cell": {
-                    "address": "M",
+                    "address": "E",
                     "subject_code": "2207"
                 }
             },
             {
-                "column": "PE_PAYABLE_TAX",
+                "column": "PAYABLE_TAX",
                 "cell": {
-                    "address": "M",
+                    "address": "E",
                     "subject_code": "2221"
                 }
             },
             {
-                "column": "PE_PAYABLE_INTEREST",
+                "column": "PAYABLE_INTEREST",
                 "cell": {
-                    "address": "M",
+                    "address": "E",
                     "subject_code": "2231"
                 }
             },
             {
-                "column": "PE_PAYABLE_TRADING_FEE",
+                "column": "PAYABLE_TRADING_FEE",
                 "cell": {
-                    "address": "M",
+                    "address": "E",
                     "subject_code": "2209"
                 }
             },
             {
-                "column": "PE_PAYABLE_MGT_FEE",
+                "column": "PAYABLE_MGT_FEE",
                 "cell": {
-                    "address": "M",
+                    "address": "E",
                     "subject_code": "2206"
                 }
             },
             {
-                "column": "DEVIATION",
+                "column": "EDU_SURCHARGE_TAX",
                 "cell": {
-                    "address": "C",
-                    "subject_code": "偏离度%："
+                    "address": "E",
+                    "subject_code": "2221.05"
                 }
             },
             {
-                "column": "ACCU_UNIT_NAV",
+                "column": "LOCAL_EDU_SURCHARGE_TAX",
                 "cell": {
-                    "address": "C",
-                    "subject_code": "昨日单位净值："
+                    "address": "E",
+                    "subject_code": "2221.09"
                 }
             },
             {
-                "column": "PE_TOTAL_ASSET",
+                "column": "CONSTRUCTION_SURCHARGE_TAX",
                 "cell": {
-                    "address": "I",
-                    "subject_code": "资产类合计："
+                    "address": "E",
+                    "subject_code": "2221.12"
                 }
-            },
-            {
-                "column": "_A",
-                "cell": {
-                    "address": "I",
-                    "subject_code": "资产类合计："
-                }
-            },
-            {
-                "column": "TEST_TEST",
-                "formula": "PE_PAYABLE_TRADING_FEE+PE_PAYABLE_MGT_FEE+_A"
             }
         ]
     }

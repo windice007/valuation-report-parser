@@ -18,7 +18,8 @@ def obj_json_hook(dic: dict):
     if obj is None:
         return dic
     else:
-        obj.__dict__ = dic
+        for k, v in dic.items():
+            setattr(obj, k, v)
         if isinstance(obj, ValueDefine) and isinstance(obj.cell, str):
             obj.cell = DataCell(obj.cell)
         return obj
