@@ -21,6 +21,7 @@ class ProcessContext:
         self.sheet = sheet
         self.config = config
         self.subject_column = excel_column_index(config.subject_code_column)
+        self.file_name = None
 
 
 class ValuationReportData:
@@ -180,6 +181,7 @@ def process_product(context: ProcessContext, vpd: ValuationReportData):
 def process_excel_file_data(file, config: ExcelConfig) -> ValuationReportData:
     sheet = p.get_sheet(file_name=file)
     context = ProcessContext(sheet, config)
+    context.file_name = file
 
     for i in range(len(sheet)):
         code = sheet.cell_value(i, context.subject_column)

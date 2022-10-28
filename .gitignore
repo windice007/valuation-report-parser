@@ -1,12 +1,11 @@
 __pycache__
 .vscode
-/result.json
 /build
 /dist
 /run.spec
 /*.xls
 /*.xlsx
 /*.json
-!/config.json
 
 /*.egg-info
+/settings.ini
