@@ -10,6 +10,8 @@ import os
 import glob
 import argparse
 
+__version__ = "0.1.0"
+
 
 def current_dir_files():
     result = glob.glob("*.xls")+glob.glob("*.xlsx")
@@ -18,8 +20,11 @@ def current_dir_files():
 
 def main():
     parser = argparse.ArgumentParser(description="估值表解析程序")
-    parser.add_argument("--dir", default=".", type=str,
+    parser.add_argument("-v", "--version", action="version",
+                        version=__version__, help="display app version.")
+    parser.add_argument("-d", "--dir", default=".", type=str,
                         help="指定工作目录，程序会在工作目录中检索可用的估值表文件。如果不设定，默认为当前工作目录。")
+
     args = parser.parse_args()
 
     os.chdir(args.dir)

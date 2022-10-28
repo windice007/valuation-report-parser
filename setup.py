@@ -1,14 +1,12 @@
-from importlib.metadata import entry_points
-from sys import modules
+import imp
 from setuptools import setup
 from setuptools import find_packages
+from run import __version__
 
-
-VERSION = '0.1.0'
 
 setup(
     name='Valuation Report Parser',  # package name
-    version=VERSION,  # package version
+    version=__version__,  # package version
     author="fengbing",
     author_email="fengbing@iquantex.com",
     description='Valuation report parse tool.',  # package description
