@@ -1,11 +1,11 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from config import MYSQL_CONNECTION
 import json
 import decimal
 # sqlalchemy.orm.state.InstanceState
 from sqlalchemy.orm.state import InstanceState
 
+MYSQL_CONNECTION = "mysql+pymysql://qtrw_platodev:QTdev_2021@10.10.23.102:3306/plato_idx"
 
 def obj_json_default(obj):
     if type(obj) is decimal.Decimal:

@@ -16,8 +16,7 @@ def current_dir_files():
     return list(filter(lambda x: not x.startswith("~$"), result))
 
 
-if __name__ == "__main__":
-
+def main():
     parser = argparse.ArgumentParser(description="估值表解析程序")
     parser.add_argument("--dir", default=".", type=str,
                         help="指定工作目录，程序会在工作目录中检索可用的估值表文件。如果不设定，默认为当前工作目录。")
@@ -38,3 +37,7 @@ if __name__ == "__main__":
             with open(f'{file}.json', 'w', encoding="utf-8") as writer:
                 json.dump({"positions": list(vpd.details.values()), "product": vpd.product}, writer,  default=obj_json_default,
                           indent=2, ensure_ascii=False)
+
+
+if __name__ == "__main__":
+    main()

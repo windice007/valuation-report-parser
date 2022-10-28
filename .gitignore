@@ -8,3 +8,5 @@ __pycache__
 /*.xlsx
 /*.json
 !/config.json
+
+/*.egg-info
