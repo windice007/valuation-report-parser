@@ -1,4 +1,5 @@
 from importlib.metadata import entry_points
+from sys import modules
 from setuptools import setup
 from setuptools import find_packages
 
@@ -11,8 +12,9 @@ setup(
     author="fengbing",
     author_email="fengbing@iquantex.com",
     description='Valuation report parse tool.',  # package description
+    py_modules=["run"],
     packages=find_packages(),
     entry_points={
-        'console_scripts': ['vrp=app.run:main'],
+        'console_scripts': ['vrp=run:main'],
     },
 )

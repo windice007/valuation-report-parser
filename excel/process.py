@@ -1,6 +1,5 @@
 
 import re
-from timeit import repeat
 import pyexcel as p
 from typing import List
 from excel.define import DataCell, ExcelConfig, PositionDefine, ValueDefine
