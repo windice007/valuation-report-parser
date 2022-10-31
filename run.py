@@ -12,6 +12,8 @@ import os
 import glob
 import argparse
 from base.db_mysql import init_db
+from base.logger import logger
+from excel.sink import check_db_settings, save_result_to_file, save_result_to_db
 
 __version__ = "0.1.1"
 
@@ -19,26 +21,6 @@ __version__ = "0.1.1"
 def current_dir_files():
     result = glob.glob("*.xls")+glob.glob("*.xlsx")
     return list(filter(lambda x: not x.startswith("~$"), result))
-
-
-def save_result_to_file(vpd: ValuationReportData, file: str):
-    with open(f'{file}.json', 'w', encoding="utf-8") as writer:
-        json.dump({"positions": list(vpd.details.values()), "product": vpd.product}, writer,  default=obj_json_default,
-                  indent=2, ensure_ascii=False)
-
-
-def save_result_to_db(vpd: ValuationReportData, file: str, session):
-    pass
-
-
-def get_db_connection_url(args: object):
-    if args.connection_url != '':
-        return args.connection_url
-    cp = ConfigParser()
-    cp.read('settings.ini')
-    if cp.has_option("database", "connection_url"):
-        return cp.get("database", "connection_url")
-    return None
 
 
 def main():
@@ -54,13 +36,7 @@ def main():
 
     os.chdir(args.dir)
 
-    db_url = get_db_connection_url(args)
-    DbSession = None
-    if db_url:
-        logger.info(f"目标数据库为：{db_url}")
-        DbSession = init_db(db_url)
-    else:
-        logger.warn(f"目标数据库配置未找到，请检查参数--connection_url 或者 settings.ini")
+    check_db_settings(args)
 
     with open('config.json', 'r', encoding="utf-8") as f:
         config = json.load(f, object_hook=obj_json_hook)
@@ -73,8 +49,7 @@ def main():
         for file in current_dir_files():
             vpd = process(file, config)
             save_result_to_file(vpd, file)
-            if DbSession:
-                save_result_to_db(vpd, file, DbSession())
+            save_result_to_db(vpd, file)
 
 
 if __name__ == "__main__":

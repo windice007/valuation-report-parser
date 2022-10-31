@@ -55,12 +55,11 @@ def capture_data(context: ProcessContext, cell: DataCell, row: int = None) -> st
 
     if cell.capture_regex != None:
         match = re.search(re.compile(cell.capture_regex), cell_value)
-        if match:
-            groups = match.groups()
-            if len(groups) > 0:
-                cell_value = match[1]
-            else:
-                cell_value = match[0]
+        if match and len(match.groups()) > 0:
+            cell_value = match[1]
+        else:
+            logger.warn(f"未捕获到指定字段：[{cell_value}]@[{cell.capture_regex}]")
+            cell_value = None
 
     if isinstance(cell.mapping, dict) and cell_value in cell.mapping:
         cell_value = cell.mapping.get(cell_value)

@@ -1,9 +1,11 @@
+import imp
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 import json
 import decimal
 # sqlalchemy.orm.state.InstanceState
 from sqlalchemy.orm.state import InstanceState
+from sqlalchemy.orm.session import Session
 
 
 def obj_json_default(obj):
@@ -20,6 +22,16 @@ def obj_to_json(obj):
     return json.dumps(obj, default=obj_json_default)
 
 
+DBSession = None
+
+
 def init_db(connection_url: str):
+    global DBSession
     engine = create_engine(connection_url, json_serializer=obj_to_json)
-    return sessionmaker(bind=engine)
+    DBSession = sessionmaker(bind=engine)
+
+
+def session() -> Session:
+    if DBSession:
+        return DBSession()
+    return None
