@@ -58,6 +58,8 @@ def save_result_to_db(vpd: ValuationReportData, file: str):
         clear_db_data(vpd, con)
 
         con.add_all(list(vpd.details.values()))
+        con.add(vpd.product)
+        
         con.commit()
     except Exception as ex:
         logger.error(ex)
