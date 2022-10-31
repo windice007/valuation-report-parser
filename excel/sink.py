@@ -38,8 +38,15 @@ def check_db_settings(args: object):
 
 def clear_db_data(vpd: ValuationReportData, con: Session):
     p: VALUATIONPORTIND = vpd.product
+
+    if p.BUSI_DATE is None or p.PRODUCT_CODE is None:
+        logger.warn("持仓和产品的必要字段没有配置")
+        return
+
     con.execute(delete(VALUATIONPORTPOSDTL).where(VALUATIONPORTPOSDTL.BUSI_DATE ==
                 p.BUSI_DATE, VALUATIONPORTPOSDTL.PRODUCT_CODE == p.PRODUCT_CODE))
+    con.execute(delete(VALUATIONPORTIND).where(VALUATIONPORTIND.BUSI_DATE ==
+                p.BUSI_DATE, VALUATIONPORTIND.PRODUCT_CODE == p.PRODUCT_CODE))
 
 
 def save_result_to_db(vpd: ValuationReportData, file: str):
