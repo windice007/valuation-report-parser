@@ -15,6 +15,7 @@ class ValueDefine:
         self.cell: DataCell = None
         self.formula: str = None
         self.mapping: dict = None
+        self.value: any = None
 
 
 class SubjectDefine:

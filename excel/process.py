@@ -143,8 +143,10 @@ def process_position(context: ProcessContext,  pos_type: str, defines: List[Posi
                             d = None
                             if vd.cell:
                                 d = capture_data(context, vd.cell, i)
-                            else:
+                            elif vd.formula:
                                 d = custom_eval(vd.formula, obj.__dict__)
+                            else:
+                                d = vd.value
 
                             if d is None or d == '':
                                 continue

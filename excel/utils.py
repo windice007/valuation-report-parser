@@ -7,7 +7,7 @@ def obj_json_hook(dic: dict):
         obj = PositionDefine()
     if "code" in dic and "values" in dic:
         obj = SubjectDefine()
-    if ("cell" in dic or "formula" in dic) and "column" in dic:
+    if ("cell" in dic or "formula" in dic or "value" in dic) and "column" in dic:
         obj = ValueDefine()
     if "address" in dic:
         obj = DataCell()
