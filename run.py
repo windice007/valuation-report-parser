@@ -36,6 +36,7 @@ def main():
 
     os.chdir(args.dir)
 
+    logger.info(f"{parser.description} {__version__}")
     check_db_settings(args)
 
     with open('config.json', 'r', encoding="utf-8") as f:
@@ -47,6 +48,7 @@ def main():
             print("指定工作目录没有找到估值文件(*.xls|*.xlsx)")
 
         for file in current_dir_files():
+            logger.info(f"开始处理估值文件：{file}")
             vpd = process(file, config)
             save_result_to_file(vpd, file)
             save_result_to_db(vpd, file)

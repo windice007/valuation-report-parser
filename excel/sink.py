@@ -15,6 +15,7 @@ def save_result_to_file(vpd: ValuationReportData, file: str):
     with open(f'{file}.json', 'w', encoding="utf-8") as writer:
         json.dump({"positions": list(vpd.details.values()), "product": vpd.product}, writer,  default=obj_json_default,
                   indent=2, ensure_ascii=False)
+    logger.info(f"估值数据写入文件完成")
 
 
 def get_db_connection_url(args: object):
@@ -52,6 +53,7 @@ def clear_db_data(vpd: ValuationReportData, con: Session):
 def save_result_to_db(vpd: ValuationReportData, file: str):
     con = session()
     if con is None:
+        logger.warn("无法获取数据库信息，估值数据无法写入数据库")
         return
     try:
 
@@ -59,8 +61,9 @@ def save_result_to_db(vpd: ValuationReportData, file: str):
 
         con.add_all(list(vpd.details.values()))
         con.add(vpd.product)
-        
+
         con.commit()
+        logger.info(f"估值数据写入数据库完成")
     except Exception as ex:
         logger.error(ex)
         con.rollback()
