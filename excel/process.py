@@ -173,9 +173,11 @@ def process_product(context: ProcessContext, vpd: ValuationReportData):
     for v in pro.values:
         if v.cell:
             set_value(m, v, capture_data(context, v.cell))
-        else:
+        elif v.formula:
             d = custom_eval(v.formula, m.__dict__)
             set_value(m, v, d)
+        else:
+            set_value(m, v, v.value)
     vpd.product = m
 
 
