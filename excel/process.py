@@ -21,7 +21,7 @@ class ProcessContext:
         self.sheet = sheet
         self.config = config
         self.subject_column = excel_column_index(config.subject_code_column)
-        self.file_name = None
+        self.env = {}
 
 
 class ValuationReportData:
@@ -35,7 +35,9 @@ def capture_data(context: ProcessContext, cell: DataCell, row: int = None) -> st
     if cell == None or cell.address == None:
         return None
     cell_value = None
-    if is_position_str(cell.address):
+    if cell.address in context.env:
+        cell_value = context.env.get(cell.address)
+    elif is_position_str(cell.address):
         cell_value = sheet[cell.address]
     else:
         column_index = excel_column_index(cell.address)
@@ -129,6 +131,8 @@ def process_position(context: ProcessContext,  pos_type: str, defines: List[Posi
                                     if isinstance(v, DataCell):
                                         setattr(
                                             obj, k, capture_data(context, v))
+                                    elif v in context.env:
+                                        setattr(obj, k, context.env.get(v))
                                     else:
                                         setattr(obj, k, v)
 
@@ -184,7 +188,7 @@ def process_product(context: ProcessContext, vpd: ValuationReportData):
 def process_excel_file_data(file, config: ExcelConfig) -> ValuationReportData:
     sheet = p.get_sheet(file_name=file)
     context = ProcessContext(sheet, config)
-    context.file_name = file
+    context.env["$FILE_NAME"] = file
 
     for i in range(len(sheet)):
         code = sheet.cell_value(i, context.subject_column)
