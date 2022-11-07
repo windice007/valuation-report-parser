@@ -4,7 +4,7 @@ import pyexcel as p
 from typing import List
 from excel.define import DataCell, ExcelConfig, PositionDefine, ValueDefine
 from pyexcel.sheet import Sheet
-from base.utils import excel_column_index, is_position_str
+from base.utils import excel_column_index, is_position_column_str, is_position_str
 import model.mysql_models as MODEL
 from base.logger import logger
 from sqlalchemy.orm.attributes import InstrumentedAttribute
@@ -39,7 +39,7 @@ def capture_data(context: ProcessContext, cell: DataCell, row: int = None) -> st
         cell_value = context.env.get(cell.address)
     elif is_position_str(cell.address):
         cell_value = sheet[cell.address]
-    else:
+    elif is_position_column_str(cell.address):
         column_index = excel_column_index(cell.address)
         subject_code = get_cell_subject_code(context, cell, row)
         if isinstance(subject_code, str):
@@ -51,6 +51,8 @@ def capture_data(context: ProcessContext, cell: DataCell, row: int = None) -> st
                 logger.warn(f"未找到指定的科目:{subject_code}")
         else:
             cell_value = sheet.cell_value(row, column_index)
+    else:
+        logger.warn(f"DataCell.address 配置不正确：{cell.address}")
 
     if cell_value is None:
         return None

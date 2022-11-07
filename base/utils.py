@@ -35,4 +35,4 @@ def is_position_str(pos: str):
 
 
 def is_position_column_str(pos: str):
-    return (isinstance(pos, str) and re.match("^[A-Za-z]+$", pos)) is not None
+    return (isinstance(pos, str) and re.match("^[A-Za-z]+$", pos)) is not None and len(pos) < 4
