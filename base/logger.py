@@ -11,12 +11,11 @@ import logging
 
 
 def init_logger():
-    instance = logging.Logger("User", logging.INFO)
+    instance = logging.Logger("User")
     fmt = logging.Formatter(
         "[%(asctime)s] %(levelname)s: %(message)s")
     handler = logging.StreamHandler(stream=sys.stdout)
     handler.setFormatter(fmt)
-    handler.setLevel(logging.INFO)
     instance.addHandler(handler)
 
     # logDate = datetime.datetime.now().strftime('%Y%m%d')

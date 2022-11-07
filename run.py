@@ -1,5 +1,6 @@
 from configparser import ConfigParser
 import json
+import logging
 
 from base.db_mysql import obj_json_default
 from excel import process_excel_file_data as process
@@ -31,12 +32,21 @@ def main():
                         help="指定工作目录，程序会在工作目录中检索可用的估值表文件。如果不设定，默认为当前工作目录。")
     parser.add_argument("--connection_url", default="", type=str,
                         help="指定目标数据库的链接字符串")
+    parser.add_argument("--debug", action="store_true", default=False,
+                        help="启用debug模式，会输出更多信息。")
 
     args = parser.parse_args()
+
+    if args.debug:
+        logger.setLevel(logging.DEBUG)
+    else:
+        logger.setLevel(logging.INFO)
 
     os.chdir(args.dir)
 
     logger.info(f"{parser.description} {__version__}")
+
+    logger.debug(f"工作目录为：{os.path.abspath(args.dir)}")
     check_db_settings(args)
 
     with open('config.json', 'r', encoding="utf-8") as f:

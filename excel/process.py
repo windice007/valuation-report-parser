@@ -113,6 +113,7 @@ def process_position(context: ProcessContext,  pos_type: str, defines: List[Posi
 
     for pd in defines:
         for sd in pd.subjects:
+            logger.debug(f"处理持仓科目定义，匹配：{sd.code}")
             repeat_checker = {}
             for i in range(len(sheet)):
                 code = sheet.cell_value(i, context.subject_column)
@@ -123,6 +124,7 @@ def process_position(context: ProcessContext,  pos_type: str, defines: List[Posi
                 if match:
                     s_code = match[1]
                     if re.search(sd.code, s_code):
+                        logger.debug(f"处理持仓：{code}")
                         t_code = match[2]
 
                         if t_code not in vpd.details:
@@ -130,6 +132,7 @@ def process_position(context: ProcessContext,  pos_type: str, defines: List[Posi
                             vpd.details[t_code] = obj
                             if pd.default:
                                 for k, v in pd.default.items():
+                                    logger.debug(f"处理持仓字段默认值：{k}")
                                     if isinstance(v, DataCell):
                                         setattr(
                                             obj, k, capture_data(context, v))
@@ -146,6 +149,7 @@ def process_position(context: ProcessContext,  pos_type: str, defines: List[Posi
                             repeat_checker[t_code] = obj
 
                         for vd in sd.values:
+                            logger.debug(f"处理持仓字段值：{vd.column}")
                             d = None
                             if vd.cell:
                                 d = capture_data(context, vd.cell, i)
@@ -155,6 +159,7 @@ def process_position(context: ProcessContext,  pos_type: str, defines: List[Posi
                                 d = vd.value
 
                             if d is None or d == '':
+                                logger.debug(f"持仓字段值为空：{vd.column}，跳过赋值。")
                                 continue
 
                             v = getattr(obj, vd.column)
@@ -168,6 +173,7 @@ def process_positions(context: ProcessContext, vpd: ValuationReportData):
     config = context.config
 
     for k, v in config.positions.items():
+        logger.debug(f"处理持仓：{k}")
         process_position(context, k, v, vpd)
 
 
@@ -175,8 +181,11 @@ def process_product(context: ProcessContext, vpd: ValuationReportData):
     pro = context.config.product
     Model = getattr(MODEL, pro.model)
 
+    logger.debug(f"开始处理指标表:{pro.model}")
+
     m = Model()
     for v in pro.values:
+        logger.debug(f"处理指标表字段:{v.column}")
         if v.cell:
             set_value(m, v, capture_data(context, v.cell))
         elif v.formula:
