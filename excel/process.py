@@ -119,8 +119,12 @@ def process_position(context: ProcessContext,  pos_type: str, defines: List[Posi
                 code = sheet.cell_value(i, context.subject_column)
                 if code == '' or code == None:
                     continue
-                match = re.search(re.compile(
-                    config.subject_code_detail_regex), code)
+                match = None
+                if sd.direct_match:
+                    match = [code, code, code]
+                else:
+                    match = re.search(re.compile(
+                        config.subject_code_detail_regex), code)
                 if match:
                     s_code = match[1]
                     if re.search(sd.code, s_code):
@@ -129,6 +133,8 @@ def process_position(context: ProcessContext,  pos_type: str, defines: List[Posi
 
                         if t_code not in vpd.details:
                             obj = Model()
+                            setattr(obj, "_id", t_code)
+                            setattr(obj, "_code", code)
                             vpd.details[t_code] = obj
                             if pd.default:
                                 for k, v in pd.default.items():

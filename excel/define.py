@@ -21,6 +21,7 @@ class ValueDefine:
 class SubjectDefine:
     def __init__(self) -> None:
         self.code: str | None = None
+        self.direct_match = False
         self.values: List[ValueDefine] = []
 
 
