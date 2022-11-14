@@ -77,6 +77,7 @@ def get_cell_subject_code(context: ProcessContext, cell: DataCell, row: int = No
 
 
 def convert_str_to_decimal(v: str) -> Decimal:
+    v = v.replace(",", "")
     if v == '':
         return Decimal(0)
     elif v.endswith("%"):
