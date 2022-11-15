@@ -113,6 +113,9 @@ def process_position(context: ProcessContext,  pos_type: str, defines: List[Posi
     Model = getattr(MODEL, pos_type)
 
     for pd in defines:
+        subject_code_detail_regex = config.subject_code_detail_regex
+        if isinstance(pd.subject_code_detail_regex, str):
+            subject_code_detail_regex = pd.subject_code_detail_regex
         for sd in pd.subjects:
             logger.debug(f"处理持仓科目定义，匹配：{sd.code}")
             repeat_checker = {}
@@ -125,7 +128,7 @@ def process_position(context: ProcessContext,  pos_type: str, defines: List[Posi
                     match = [code, code, code]
                 else:
                     match = re.search(re.compile(
-                        config.subject_code_detail_regex), code)
+                        subject_code_detail_regex), code)
                 if match:
                     s_code = match[1]
                     if re.search(sd.code, s_code):

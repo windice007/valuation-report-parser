@@ -27,6 +27,7 @@ class SubjectDefine:
 
 class PositionDefine:
     def __init__(self) -> None:
+        self.subject_code_detail_regex: str | None = None
         self.default: dict | None = {}
         self.subjects: List[SubjectDefine] = []
 

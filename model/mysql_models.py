@@ -811,7 +811,7 @@ class VALUATIONPORTPOSDTL(Base):
     AST_CLS_CODE = Column(VARCHAR(10), comment='资产大类，股票、基金等')
     SEC_TYPE = Column(VARCHAR(10), comment='证券类型')
     MARKET_CODE = Column(VARCHAR(10), comment='交易市场')
-    INV_CLS_CODE = Column(VARCHAR(10), comment='投资分类代码')
+    INV_CLS_CODE = Column(VARCHAR(10), primary_key=True, nullable=False, comment='投资分类代码')
     LMT_CLS_TYPE_CODE = Column(VARCHAR(10), primary_key=True, nullable=False, comment='受限流通类型代码')
     SECU_CODE = Column(VARCHAR(50), primary_key=True, nullable=False, comment='证券内码')
     SYMBOL = Column(VARCHAR(50), comment='证券代码')
