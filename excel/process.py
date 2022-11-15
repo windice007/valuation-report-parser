@@ -135,28 +135,20 @@ def process_position(context: ProcessContext,  pos_type: str, defines: List[Posi
                         logger.debug(f"处理持仓：{code}")
                         t_code = match[2]
 
-                        if t_code not in vpd.details:
-                            obj = Model()
-                            setattr(obj, "_id", t_code)
-                            setattr(obj, "_code", code)
-                            vpd.details[t_code] = obj
-                            if pd.default:
-                                for k, v in pd.default.items():
-                                    logger.debug(f"处理持仓字段默认值：{k}")
-                                    if isinstance(v, DataCell):
-                                        setattr(
-                                            obj, k, capture_data(context, v))
-                                    elif v in context.env:
-                                        setattr(obj, k, context.env.get(v))
-                                    else:
-                                        setattr(obj, k, v)
-
-                        obj = vpd.details[t_code]
-
-                        if t_code in repeat_checker:
-                            logger.warn(f"同一处理科目下出现了重复匹配:[{t_code}@{sd.code}]")
-                        else:
-                            repeat_checker[t_code] = obj
+                        # 生成对象
+                        obj = Model()
+                        setattr(obj, "_id", t_code)
+                        setattr(obj, "_code", code)
+                        if pd.default:
+                            for k, v in pd.default.items():
+                                logger.debug(f"处理持仓字段默认值：{k}")
+                                if isinstance(v, DataCell):
+                                    setattr(
+                                        obj, k, capture_data(context, v))
+                                elif v in context.env:
+                                    setattr(obj, k, context.env.get(v))
+                                else:
+                                    setattr(obj, k, v)
 
                         for vd in sd.values:
                             logger.debug(f"处理持仓字段值：{vd.column}")
@@ -177,6 +169,29 @@ def process_position(context: ProcessContext,  pos_type: str, defines: List[Posi
                                 set_value(obj, vd, d)
                             else:
                                 set_value(obj, vd, d+v)
+                            # 生成结束
+
+                        if pos_type == "VALUATIONPORTPOSDTL":
+                            cls_code = getattr(obj, "INV_CLS_CODE")
+                            if isinstance(cls_code, str) and len(cls_code) > 0:
+                                t_code = f"{t_code}+CLS[{cls_code}]"
+
+                        if t_code in repeat_checker:
+                            logger.warn(f"同一处理科目下出现了重复匹配:[{t_code}@{sd.code}]")
+                        else:
+                            repeat_checker[t_code] = obj
+
+                        if t_code not in vpd.details:
+                            vpd.details[t_code] = obj
+                        else:
+                            merge_object(vpd.details[t_code], obj)
+
+
+def merge_object(obj1, obj2):
+    for att in dir(obj2):
+        oldv = getattr(obj1, att)
+        if oldv is None:
+            setattr(obj1, att, getattr(obj2, att))
 
 
 def process_positions(context: ProcessContext, vpd: ValuationReportData):
