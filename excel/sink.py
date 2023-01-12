@@ -8,7 +8,7 @@ from base.db_mysql import init_db, obj_json_default, session
 from excel.process import ValuationReportData
 from base.logger import logger
 from sqlalchemy.orm.session import Session
-from model.mysql_models import VALUATIONPORTIND, VALUATIONPORTPOSDTL
+from model.mysql_models import VALUATIONPORTIND, VALUATIONPORTPOSDTL, INDICBASEPORTPOSDTL
 
 
 def save_result_to_file(vpd: ValuationReportData, file: str):
@@ -48,6 +48,8 @@ def clear_db_data(vpd: ValuationReportData, con: Session):
                 p.BUSI_DATE, VALUATIONPORTPOSDTL.PRODUCT_CODE == p.PRODUCT_CODE))
     con.execute(delete(VALUATIONPORTIND).where(VALUATIONPORTIND.BUSI_DATE ==
                 p.BUSI_DATE, VALUATIONPORTIND.PRODUCT_CODE == p.PRODUCT_CODE))
+    con.execute(delete(INDICBASEPORTPOSDTL).where(INDICBASEPORTPOSDTL.BIZ_DATE ==
+                p.BUSI_DATE, INDICBASEPORTPOSDTL.PRD_CODE == p.PRODUCT_CODE))
 
 
 def save_result_to_db(vpd: ValuationReportData, file: str):
