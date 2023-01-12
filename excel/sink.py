@@ -8,7 +8,7 @@ from base.db_mysql import init_db, obj_json_default, session
 from excel.process import ValuationReportData
 from base.logger import logger
 from sqlalchemy.orm.session import Session
-from model.mysql_models import VALUATIONPORTIND, VALUATIONPORTPOSDTL, INDICBASEPORTPOSDTL
+from model.mysql_models import VALUATIONPORTIND, VALUATIONPORTPOSDTL, INDICBASEPORTPOSDTL, INDICBASEPORTIDX
 
 
 def save_result_to_file(vpd: ValuationReportData, file: str):
@@ -37,19 +37,33 @@ def check_db_settings(args: object):
         logger.warn(f"目标数据库配置未找到，请检查参数--connection_url 或者 settings.ini")
 
 
-def clear_db_data(vpd: ValuationReportData, con: Session):
-    p: VALUATIONPORTIND = vpd.product
+def get_key_info(product):
+    if isinstance(product, VALUATIONPORTIND):
+        return (product.BUSI_DATE, product.PRODUCT_CODE)
+    if isinstance(product, INDICBASEPORTIDX):
+        return (product.BIZ_DATE, product.PRD_CODE)
+    return (None, None)
 
-    if p.BUSI_DATE is None or p.PRODUCT_CODE is None:
+
+def clear_db_data(vpd: ValuationReportData, con: Session):
+    p = get_key_info(vpd.product)
+
+    biz_date = p[0]
+    prd_code = p[1]
+
+    if biz_date is None or prd_code is None:
         logger.warn("持仓和产品的必要字段没有配置")
         return
 
-    con.execute(delete(VALUATIONPORTPOSDTL).where(VALUATIONPORTPOSDTL.BUSI_DATE ==
-                p.BUSI_DATE, VALUATIONPORTPOSDTL.PRODUCT_CODE == p.PRODUCT_CODE))
-    con.execute(delete(VALUATIONPORTIND).where(VALUATIONPORTIND.BUSI_DATE ==
-                p.BUSI_DATE, VALUATIONPORTIND.PRODUCT_CODE == p.PRODUCT_CODE))
-    con.execute(delete(INDICBASEPORTPOSDTL).where(INDICBASEPORTPOSDTL.BIZ_DATE ==
-                p.BUSI_DATE, INDICBASEPORTPOSDTL.PRD_CODE == p.PRODUCT_CODE))
+    con.execute(delete(VALUATIONPORTPOSDTL).where(
+        VALUATIONPORTPOSDTL.BUSI_DATE == biz_date, VALUATIONPORTPOSDTL.PRODUCT_CODE == prd_code))
+    con.execute(delete(VALUATIONPORTIND).where(
+        VALUATIONPORTIND.BUSI_DATE == biz_date, VALUATIONPORTIND.PRODUCT_CODE == prd_code))
+
+    con.execute(delete(INDICBASEPORTPOSDTL).where(
+        INDICBASEPORTPOSDTL.BIZ_DATE == biz_date, INDICBASEPORTPOSDTL.PRD_CODE == prd_code))
+    con.execute(delete(INDICBASEPORTIDX).where(
+        INDICBASEPORTIDX.BIZ_DATE == biz_date, INDICBASEPORTIDX.PRD_CODE == prd_code))
 
 
 def save_result_to_db(vpd: ValuationReportData, file: str):
