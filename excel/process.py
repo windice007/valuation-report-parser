@@ -171,8 +171,14 @@ def process_position(context: ProcessContext,  pos_type: str, defines: List[Posi
                                 set_value(obj, vd, d+v)
                             # 生成结束
 
+                        # 资产大类特殊处理
                         if pos_type == "VALUATIONPORTPOSDTL":
                             cls_code = getattr(obj, "INV_CLS_CODE")
+                            if isinstance(cls_code, str) and len(cls_code) > 0:
+                                t_code = f"{t_code}+CLS[{cls_code}]"
+
+                        if pos_type == "INDICBASEPORTPOSDTL":
+                            cls_code = getattr(obj, "AST_BIG_CLS_CODE")
                             if isinstance(cls_code, str) and len(cls_code) > 0:
                                 t_code = f"{t_code}+CLS[{cls_code}]"
 
