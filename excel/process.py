@@ -173,14 +173,14 @@ def process_position(context: ProcessContext,  pos_type: str, defines: List[Posi
 
                         # 资产大类特殊处理
                         if pos_type == "VALUATIONPORTPOSDTL":
+                            big_code = getattr(obj, "AST_CLS_CODE")
                             cls_code = getattr(obj, "INV_CLS_CODE")
-                            if isinstance(cls_code, str) and len(cls_code) > 0:
-                                t_code = f"{t_code}+CLS[{cls_code}]"
+                            t_code = f"{big_code}_{cls_code}_{t_code}"
 
                         if pos_type == "INDICBASEPORTPOSDTL":
-                            cls_code = getattr(obj, "AST_BIG_CLS_CODE")
-                            if isinstance(cls_code, str) and len(cls_code) > 0:
-                                t_code = f"{t_code}+CLS[{cls_code}]"
+                            big_code = getattr(obj, "AST_BIG_CLS_CODE")
+                            cls_code = getattr(obj, "INVES_CLS_CODE")
+                            t_code = f"{big_code}_{cls_code}_{t_code}"
 
                         if t_code in repeat_checker:
                             logger.warn(f"同一处理科目下出现了重复匹配:[{t_code}@{sd.code}]")
