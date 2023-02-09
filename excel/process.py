@@ -89,16 +89,19 @@ def convert_str_to_decimal(v: str) -> Decimal:
 def set_value(obj: object, vd: ValueDefine, v: any):
     if isinstance(vd.mapping, dict) and v in vd.mapping:
         v = vd.mapping.get(v)
+    set_column_value(obj, vd.column, v)
 
-    if hasattr(type(obj), vd.column):
-        c_define: InstrumentedAttribute = getattr(type(obj), vd.column)
+
+def set_column_value(obj: object, column: str, v: any):
+    if hasattr(type(obj), column):
+        c_define: InstrumentedAttribute = getattr(type(obj), column)
         if c_define:
             t = c_define.expression.type.python_type
 
             if t is Decimal and isinstance(v, str):
                 v = convert_str_to_decimal(v)
 
-    setattr(obj, vd.column, v)
+    setattr(obj, column, v)
 
 
 def custom_eval(formula: str, local: dict):
@@ -143,12 +146,13 @@ def process_position(context: ProcessContext,  pos_type: str, defines: List[Posi
                             for k, v in pd.default.items():
                                 logger.debug(f"处理持仓字段默认值：{k}")
                                 if isinstance(v, DataCell):
-                                    setattr(
-                                        obj, k, capture_data(context, v))
+                                    set_column_value(
+                                        obj, k, capture_data(context, v, i))
                                 elif v in context.env:
-                                    setattr(obj, k, context.env.get(v))
+                                    set_column_value(
+                                        obj, k, context.env.get(v))
                                 else:
-                                    setattr(obj, k, v)
+                                    set_column_value(obj, k, v)
 
                         for vd in sd.values:
                             logger.debug(f"处理持仓字段值：{vd.column}")
@@ -181,6 +185,8 @@ def process_position(context: ProcessContext,  pos_type: str, defines: List[Posi
                             big_code = getattr(obj, "AST_BIG_CLS_CODE")
                             cls_code = getattr(obj, "INVES_CLS_CODE")
                             t_code = f"{big_code}_{cls_code}_{t_code}"
+
+                        setattr(obj, "_id", t_code)
 
                         if t_code in repeat_checker:
                             logger.warn(f"同一处理科目下出现了重复匹配:[{t_code}@{sd.code}]")
