@@ -179,12 +179,8 @@ def process_position(context: ProcessContext,  pos_type: str, defines: List[Posi
                         if pos_type == "VALUATIONPORTPOSDTL":
                             big_code = getattr(obj, "AST_CLS_CODE")
                             cls_code = getattr(obj, "INV_CLS_CODE")
-                            t_code = f"{big_code}_{cls_code}_{t_code}"
-
-                        if pos_type == "INDICBASEPORTPOSDTL":
-                            big_code = getattr(obj, "AST_BIG_CLS_CODE")
-                            cls_code = getattr(obj, "INVES_CLS_CODE")
-                            t_code = f"{big_code}_{cls_code}_{t_code}"
+                            attr_code = getattr(obj, "HOLD_ATTR_CODE")
+                            t_code = f"{big_code}_{cls_code}_{attr_code}_{t_code}"
 
                         setattr(obj, "_id", t_code)
 

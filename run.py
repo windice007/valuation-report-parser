@@ -16,7 +16,7 @@ from base.db_mysql import init_db
 from base.logger import logger
 from excel.sink import check_db_settings, save_result_to_file, save_result_to_db
 
-__version__ = "0.1.13"
+__version__ = "0.1.14"
 
 
 def current_dir_files():

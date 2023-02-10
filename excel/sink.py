@@ -8,7 +8,7 @@ from base.db_mysql import init_db, obj_json_default, session
 from excel.process import ValuationReportData
 from base.logger import logger
 from sqlalchemy.orm.session import Session
-from model.mysql_models import VALUATIONPORTIND, VALUATIONPORTPOSDTL, INDICBASEPORTPOSDTL, INDICBASEPORTIDX
+from model.mysql_models import VALUATIONPORTIND, VALUATIONPORTPOSDTL
 
 
 def save_result_to_file(vpd: ValuationReportData, file: str):
@@ -40,8 +40,6 @@ def check_db_settings(args: object):
 def get_key_info(product):
     if isinstance(product, VALUATIONPORTIND):
         return (product.BUSI_DATE, product.PRODUCT_CODE)
-    if isinstance(product, INDICBASEPORTIDX):
-        return (product.BIZ_DATE, product.PRD_CODE)
     return (None, None)
 
 
@@ -59,11 +57,6 @@ def clear_db_data(vpd: ValuationReportData, con: Session):
         VALUATIONPORTPOSDTL.BUSI_DATE == biz_date, VALUATIONPORTPOSDTL.PRODUCT_CODE == prd_code))
     con.execute(delete(VALUATIONPORTIND).where(
         VALUATIONPORTIND.BUSI_DATE == biz_date, VALUATIONPORTIND.PRODUCT_CODE == prd_code))
-
-    con.execute(delete(INDICBASEPORTPOSDTL).where(
-        INDICBASEPORTPOSDTL.BIZ_DATE == biz_date, INDICBASEPORTPOSDTL.PRD_CODE == prd_code))
-    con.execute(delete(INDICBASEPORTIDX).where(
-        INDICBASEPORTIDX.BIZ_DATE == biz_date, INDICBASEPORTIDX.PRD_CODE == prd_code))
 
 
 def save_result_to_db(vpd: ValuationReportData, file: str):
