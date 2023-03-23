@@ -2,8 +2,7 @@ from configparser import ConfigParser
 import json
 import logging
 
-from base.db_mysql import obj_json_default
-from excel import process_excel_file_data as process
+from excel.process import process_excel_file_data as process
 from excel.process import ValuationReportData
 from excel.utils import obj_json_hook
 import pyexcel_xls
@@ -63,7 +62,7 @@ def main():
             logger.info(f"开始处理估值文件：{file}")
             vpd = process(file, config)
             save_result_to_file(vpd, file)
-            save_result_to_db(vpd, file)
+            save_result_to_db(vpd)
 
 
 if __name__ == "__main__":

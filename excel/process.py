@@ -2,11 +2,11 @@
 import re
 import pyexcel as p
 from typing import List
+from base.db_mysql import get_table_sink
 from excel.define import DataCell, ExcelConfig, PositionDefine
 from pyexcel.sheet import Sheet
 from base.utils import excel_column_index, is_position_column_str, is_position_str
 from excel.utils import Dict
-import model.mysql_models as MODEL
 from base.logger import logger
 from sqlalchemy.orm.attributes import InstrumentedAttribute
 from decimal import Decimal
@@ -221,6 +221,7 @@ def handle_position(context: ProcessContext, pos: PositionDefine, vpd: Valuation
     if not isinstance(pos.groups, list):
         logger.warn(f'没有有效的持仓定义:{pos.table}')
         return
+    details = []
     for group in pos.groups:
         if not isinstance(group.handlers, list):
             logger.warn(f'没有有效的处理配置:{pos.table}')
@@ -236,29 +237,47 @@ def handle_position(context: ProcessContext, pos: PositionDefine, vpd: Valuation
                     process_data(context, pos.default)
                     process_data(context, group.default)
                     process_data(context, handler.values)
-                    vpd.details.append(context.current_model)
+                    append_details(details, context.current_model)
 
-def refactor_position(vpd:ValuationReportData):
-    pass    
+    vpd.details.extend(details)
+
+
+def is_same_position(m1: dict, m2: dict, keys: list[str]):
+    if m1['__tablename__'] != m2['__tablename__']:
+        return False
+    for key in keys:
+        if m1[key] != m2[key]:
+            return False
+    return True
+
+
+def merge_dict(d1: dict, d2: dict):
+    for k, v in d2.items():
+        if k not in d1:
+            d1[k] = v
+
+
+def append_details(details: list, model: dict):
+    table = model['__tablename__']
+    sink = get_table_sink(table)
+    pris = sink.primary_columns
+
+    target = next(
+        (x for x in details if is_same_position(x, model, pris)), None)
+
+    if target:
+        merge_dict(target, model)
+    else:
+        details.append(model)
 
 
 def process_data(context: ProcessContext, data: Dict):
     if isinstance(data, Dict):
         for k, v in data:
-            if isinstance(context.current_model, dict):
-                context.current_model[k] = handle_value(context, v)
-            else:
-                set_column_value(context.current_model, k,
-                                 handle_value(context, v))
+            context.current_model[k] = handle_value(context, v)
 
 
 def create_model(table: str):
-    properties = vars(MODEL)
-    for v in properties.values():
-        if isinstance(v, type) and issubclass(v, MODEL.Base) and v is not MODEL.Base:
-            t = getattr(v, "__tablename__")
-            if t == table:
-                return v()
     return {"__tablename__": table}
 
 

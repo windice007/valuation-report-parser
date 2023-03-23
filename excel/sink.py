@@ -1,19 +1,13 @@
-
-
 from configparser import ConfigParser
 import json
-
-from sqlalchemy import delete
-from base.db_mysql import init_db, obj_json_default, session
+from base.db_mysql import init_db
 from excel.process import ValuationReportData
 from base.logger import logger
-from sqlalchemy.orm.session import Session
-from model.mysql_models import VALUATIONPORTIND, VALUATIONPORTPOSDTL
 
 
 def save_result_to_file(vpd: ValuationReportData, file: str):
     with open(f'{file}.json', 'w', encoding="utf-8") as writer:
-        json.dump({"positions": vpd.details, "product": vpd.product}, writer,  default=obj_json_default,
+        json.dump({"positions": vpd.details, "product": vpd.product}, writer,
                   indent=2, ensure_ascii=False)
     logger.info(f"估值数据写入文件完成")
 
@@ -37,44 +31,9 @@ def check_db_settings(args: object):
         logger.warn(f"目标数据库配置未找到，请检查参数--connection_url 或者 settings.ini")
 
 
-def get_key_info(product):
-    if isinstance(product, VALUATIONPORTIND):
-        return (product.BUSI_DATE, product.PRODUCT_CODE)
-    return (None, None)
+def clear_db_data(vpd: ValuationReportData):
+    pass
 
 
-def clear_db_data(vpd: ValuationReportData, con: Session):
-    p = get_key_info(vpd.product)
-
-    biz_date = p[0]
-    prd_code = p[1]
-
-    if biz_date is None or prd_code is None:
-        logger.warn("持仓和产品的必要字段没有配置")
-        return
-
-    con.execute(delete(VALUATIONPORTPOSDTL).where(
-        VALUATIONPORTPOSDTL.BUSI_DATE == biz_date, VALUATIONPORTPOSDTL.PRODUCT_CODE == prd_code))
-    con.execute(delete(VALUATIONPORTIND).where(
-        VALUATIONPORTIND.BUSI_DATE == biz_date, VALUATIONPORTIND.PRODUCT_CODE == prd_code))
-
-
-def save_result_to_db(vpd: ValuationReportData, file: str):
-    con = session()
-    if con is None:
-        logger.warn("无法获取数据库信息，估值数据无法写入数据库")
-        return
-    try:
-
-        clear_db_data(vpd, con)
-
-        con.add_all(vpd.details)
-        con.add(vpd.product)
-
-        con.commit()
-        logger.info(f"估值数据写入数据库完成")
-    except Exception as ex:
-        logger.error(ex)
-        con.rollback()
-
-    con.close()
+def save_result_to_db(vpd: ValuationReportData):
+    pass
