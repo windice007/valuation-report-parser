@@ -1,13 +1,20 @@
 from configparser import ConfigParser
+import decimal
 import json
 from base.db_mysql import init_db
 from excel.process import ValuationReportData
 from base.logger import logger
 
 
+def obj_json_default(obj):
+    if type(obj) is decimal.Decimal:
+        return float(obj)
+    return obj
+
+
 def save_result_to_file(vpd: ValuationReportData, file: str):
     with open(f'{file}.json', 'w', encoding="utf-8") as writer:
-        json.dump({"positions": vpd.details, "product": vpd.product}, writer,
+        json.dump({"positions": vpd.details, "product": vpd.product}, writer, default=obj_json_default,
                   indent=2, ensure_ascii=False)
     logger.info(f"估值数据写入文件完成")
 
