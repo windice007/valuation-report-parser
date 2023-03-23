@@ -233,6 +233,7 @@ def handle_position(context: ProcessContext, pos: PositionDefine, vpd: Valuation
                     continue
                 if re.search(handler.subject_filter_regex, code):
                     context.current_model = create_model(pos.table)
+                    context.current_model[DATASOUCE] = [code]
                     context.current_row = i
                     process_data(context, pos.default)
                     process_data(context, group.default)
@@ -242,8 +243,12 @@ def handle_position(context: ProcessContext, pos: PositionDefine, vpd: Valuation
     vpd.details.extend(details)
 
 
+TABLE_NAME = "__tablename__"
+DATASOUCE = "__datasource__"
+
+
 def is_same_position(m1: dict, m2: dict, keys: list[str]):
-    if m1['__tablename__'] != m2['__tablename__']:
+    if m1[TABLE_NAME] != m2[TABLE_NAME]:
         return False
     for key in keys:
         if key not in m1 and key not in m2:
@@ -261,10 +266,11 @@ def merge_dict(d1: dict, d2: dict):
     for k, v in d2.items():
         if k not in d1:
             d1[k] = v
+    d1[DATASOUCE].extend(d2[DATASOUCE])
 
 
 def append_details(details: list, model: dict):
-    table = model['__tablename__']
+    table = model[TABLE_NAME]
     sink = get_table_sink(table)
     pris = sink.primary_columns
 
@@ -284,7 +290,7 @@ def process_data(context: ProcessContext, data: Dict):
 
 
 def create_model(table: str):
-    return {"__tablename__": table}
+    return {TABLE_NAME: table}
 
 
 def process_product(context: ProcessContext, vpd: ValuationReportData):
