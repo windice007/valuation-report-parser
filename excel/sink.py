@@ -13,7 +13,7 @@ from model.mysql_models import VALUATIONPORTIND, VALUATIONPORTPOSDTL
 
 def save_result_to_file(vpd: ValuationReportData, file: str):
     with open(f'{file}.json', 'w', encoding="utf-8") as writer:
-        json.dump({"positions": list(vpd.details.values()), "product": vpd.product}, writer,  default=obj_json_default,
+        json.dump({"positions": vpd.details, "product": vpd.product}, writer,  default=obj_json_default,
                   indent=2, ensure_ascii=False)
     logger.info(f"估值数据写入文件完成")
 
@@ -68,7 +68,7 @@ def save_result_to_db(vpd: ValuationReportData, file: str):
 
         clear_db_data(vpd, con)
 
-        con.add_all(list(vpd.details.values()))
+        con.add_all(vpd.details)
         con.add(vpd.product)
 
         con.commit()

@@ -30,7 +30,7 @@ class ProcessContext:
 
 class ValuationReportData:
     def __init__(self) -> None:
-        self.details = {}
+        self.details = []
         self.product = None
 
 
@@ -236,7 +236,10 @@ def handle_position(context: ProcessContext, pos: PositionDefine, vpd: Valuation
                     process_data(context, pos.default)
                     process_data(context, group.default)
                     process_data(context, handler.values)
-                    vpd.details[code] = context.current_model
+                    vpd.details.append(context.current_model)
+
+def refactor_position(vpd:ValuationReportData):
+    pass    
 
 
 def process_data(context: ProcessContext, data: Dict):
@@ -245,7 +248,8 @@ def process_data(context: ProcessContext, data: Dict):
             if isinstance(context.current_model, dict):
                 context.current_model[k] = handle_value(context, v)
             else:
-                setattr(context.current_model, k, handle_value(context, v))
+                set_column_value(context.current_model, k,
+                                 handle_value(context, v))
 
 
 def create_model(table: str):
