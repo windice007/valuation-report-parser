@@ -109,7 +109,9 @@ def set_column_value(obj: object, column: str, v: any):
 
 
 def custom_eval(formula: str, local: dict):
-    return eval(formula, None, local)
+    if isinstance(local, dict):
+        return eval(formula, None, local)
+    return eval(formula, None, local.__dict__)
 
 
 def process_position(context: ProcessContext,  pos_type: str, defines: List[PositionDefine], vpd: ValuationReportData):
@@ -229,7 +231,7 @@ def handle_position(context: ProcessContext, pos: PositionDefine, vpd: Valuation
                 if code == '' or code == None:
                     continue
                 if re.search(handler.subject_filter_regex, code):
-                    context.current_model = {"__TABLE__": pos.table}
+                    context.current_model = create_model(pos.table)
                     context.current_row = i
                     process_data(context, pos.default)
                     process_data(context, group.default)
@@ -240,7 +242,20 @@ def handle_position(context: ProcessContext, pos: PositionDefine, vpd: Valuation
 def process_data(context: ProcessContext, data: Dict):
     if isinstance(data, Dict):
         for k, v in data:
-            context.current_model[k] = handle_value(context, v)
+            if isinstance(context.current_model, dict):
+                context.current_model[k] = handle_value(context, v)
+            else:
+                setattr(context.current_model, k, handle_value(context, v))
+
+
+def create_model(table: str):
+    properties = vars(MODEL)
+    for v in properties.values():
+        if isinstance(v, type) and issubclass(v, MODEL.Base) and v is not MODEL.Base:
+            t = getattr(v, "__tablename__")
+            if t == table:
+                return v()
+    return {"__tablename__": table}
 
 
 def process_product(context: ProcessContext, vpd: ValuationReportData):
@@ -251,7 +266,7 @@ def process_product(context: ProcessContext, vpd: ValuationReportData):
     pro = config.product
     logger.debug(f"开始处理指标表:{pro.table}")
 
-    context.current_model = {"__TABLE__": pro.table}
+    context.current_model = create_model(pro.table)
     process_data(context, pro.values)
     vpd.product = context.current_model
 
