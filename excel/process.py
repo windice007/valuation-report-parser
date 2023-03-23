@@ -1,14 +1,12 @@
 
 import re
 import pyexcel as p
-from typing import List
 from base.db_mysql import get_table_sink
 from excel.define import DataCell, ExcelConfig, PositionDefine
 from pyexcel.sheet import Sheet
 from base.utils import excel_column_index, is_position_column_str, is_position_str
 from excel.utils import Dict
 from base.logger import logger
-from sqlalchemy.orm.attributes import InstrumentedAttribute
 from decimal import Decimal
 from datetime import datetime
 
@@ -90,122 +88,10 @@ def convert_str_to_decimal(v: str) -> Decimal:
         return Decimal(v)
 
 
-def set_value(obj: object, vd, v: any):
-    if isinstance(vd.mapping, dict) and v in vd.mapping:
-        v = vd.mapping.get(v)
-    set_column_value(obj, vd.column, v)
-
-
-def set_column_value(obj: object, column: str, v: any):
-    if hasattr(type(obj), column):
-        c_define: InstrumentedAttribute = getattr(type(obj), column)
-        if c_define:
-            t = c_define.expression.type.python_type
-
-            if t is Decimal and isinstance(v, str):
-                v = convert_str_to_decimal(v)
-
-    setattr(obj, column, v)
-
-
 def custom_eval(formula: str, local: dict):
     if isinstance(local, dict):
         return eval(formula, None, local)
     return eval(formula, None, local.__dict__)
-
-
-def process_position(context: ProcessContext,  pos_type: str, defines: List[PositionDefine], vpd: ValuationReportData):
-    if not isinstance(defines, list):
-        return
-    sheet = context.sheet
-    config = context.config
-    Model = getattr(MODEL, pos_type)
-
-    for pd in defines:
-        subject_code_detail_regex = config.subject_code_detail_regex
-        if isinstance(pd.subject_code_detail_regex, str):
-            subject_code_detail_regex = pd.subject_code_detail_regex
-        for sd in pd.subjects:
-            logger.debug(f"处理持仓科目定义，匹配：{sd.code}")
-            repeat_checker = {}
-            for i in range(len(sheet)):
-                code = sheet.cell_value(i, context.subject_column)
-                if code == '' or code == None:
-                    continue
-                match = None
-                if sd.direct_match:
-                    match = [code, code, code]
-                else:
-                    match = re.search(re.compile(
-                        subject_code_detail_regex), code)
-                if match:
-                    s_code = match[1]
-                    if re.search(sd.code, s_code):
-                        logger.debug(f"处理持仓：{code}")
-                        t_code = match[2]
-
-                        # 生成对象
-                        obj = Model()
-                        setattr(obj, "_id", t_code)
-                        setattr(obj, "_code", code)
-                        if pd.default:
-                            for k, v in pd.default.items():
-                                logger.debug(f"处理持仓字段默认值：{k}")
-                                if isinstance(v, DataCell):
-                                    set_column_value(
-                                        obj, k, capture_data(context, v, i))
-                                elif v in context.env:
-                                    set_column_value(
-                                        obj, k, context.env.get(v))
-                                else:
-                                    set_column_value(obj, k, v)
-
-                        for vd in sd.values:
-                            logger.debug(f"处理持仓字段值：{vd.column}")
-                            d = None
-                            if vd.cell:
-                                d = capture_data(context, vd.cell, i)
-                            elif vd.formula:
-                                d = custom_eval(vd.formula, obj.__dict__)
-                            else:
-                                d = vd.value
-
-                            if d is None or d == '':
-                                logger.debug(f"持仓字段值为空：{vd.column}，跳过赋值。")
-                                continue
-
-                            v = getattr(obj, vd.column)
-                            if v is None:
-                                set_value(obj, vd, d)
-                            else:
-                                set_value(obj, vd, d+v)
-                            # 生成结束
-
-                        # 资产大类特殊处理
-                        if pos_type == "VALUATIONPORTPOSDTL":
-                            big_code = getattr(obj, "AST_CLS_CODE")
-                            cls_code = getattr(obj, "INV_CLS_CODE")
-                            attr_code = getattr(obj, "HOLD_ATTR_CODE")
-                            t_code = f"{big_code}_{cls_code}_{attr_code}_{t_code}"
-
-                        setattr(obj, "_id", t_code)
-
-                        if t_code in repeat_checker:
-                            logger.warn(f"同一处理科目下出现了重复匹配:[{t_code}@{sd.code}]")
-                        else:
-                            repeat_checker[t_code] = obj
-
-                        if t_code not in vpd.details:
-                            vpd.details[t_code] = obj
-                        else:
-                            merge_object(vpd.details[t_code], obj)
-
-
-def merge_object(obj1, obj2):
-    for att in dir(obj2):
-        oldv = getattr(obj1, att)
-        if oldv is None:
-            setattr(obj1, att, getattr(obj2, att))
 
 
 def process_positions(context: ProcessContext, vpd: ValuationReportData):
@@ -269,9 +155,13 @@ def merge_dict(d1: dict, d2: dict):
     d1[DATASOUCE].extend(d2[DATASOUCE])
 
 
-def append_details(details: list, model: dict):
+def get_db_sink(model: dict):
     table = model[TABLE_NAME]
-    sink = get_table_sink(table)
+    return get_table_sink(table)
+
+
+def append_details(details: list, model: dict):
+    sink = get_db_sink(model)
     pris = sink.primary_columns
 
     target = next(
@@ -285,8 +175,12 @@ def append_details(details: list, model: dict):
 
 def process_data(context: ProcessContext, data: Dict):
     if isinstance(data, Dict):
+        sink = get_db_sink(context.current_model)
         for k, v in data:
-            context.current_model[k] = handle_value(context, v)
+            val = handle_value(context, v)
+            if sink.has_column(k) and isinstance(val, str) and sink.is_decimal(k):
+                val = convert_str_to_decimal(val)
+            context.current_model[k] = val
 
 
 def create_model(table: str):

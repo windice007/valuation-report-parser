@@ -25,6 +25,15 @@ class MySQLTableSink:
     def column_schema(self, column: str):
         return self.table_schema.get(column)
 
+    def has_column(self, column: str):
+        return column in self.table_schema
+
+    def get_column_type(self, column: str):
+        return self.table_schema.get(column)['DATA_TYPE']
+
+    def is_decimal(self, column: str):
+        return self.get_column_type(column) == 'decimal'
+
     @property
     def primary_columns(self):
         if self._primary_columns is None:
