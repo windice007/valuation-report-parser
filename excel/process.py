@@ -2,13 +2,14 @@
 import re
 import pyexcel as p
 from typing import List
-from excel.define import DataCell, ExcelConfig, PositionDefine, ValueDefine
+from excel.define import DataCell, ExcelConfig, PositionDefine
 from pyexcel.sheet import Sheet
 from base.utils import excel_column_index, is_position_column_str, is_position_str
 import model.mysql_models as MODEL
 from base.logger import logger
 from sqlalchemy.orm.attributes import InstrumentedAttribute
 from decimal import Decimal
+from datetime import datetime
 
 
 class ProcessContext:
@@ -22,6 +23,8 @@ class ProcessContext:
         self.config = config
         self.subject_column = excel_column_index(config.subject_code_column)
         self.env = {}
+        self.current_row = -1
+        self.current_model = {}
 
 
 class ValuationReportData:
@@ -86,7 +89,7 @@ def convert_str_to_decimal(v: str) -> Decimal:
         return Decimal(v)
 
 
-def set_value(obj: object, vd: ValueDefine, v: any):
+def set_value(obj: object, vd, v: any):
     if isinstance(vd.mapping, dict) and v in vd.mapping:
         v = vd.mapping.get(v)
     set_column_value(obj, vd.column, v)
@@ -205,34 +208,51 @@ def merge_object(obj1, obj2):
 def process_positions(context: ProcessContext, vpd: ValuationReportData):
     config = context.config
 
-    for k, v in config.positions.items():
-        logger.debug(f"处理持仓：{k}")
-        process_position(context, k, v, vpd)
+    for pos in config.positions:
+        logger.debug(f"处理持仓：{pos}")
+        handle_position(context, pos, vpd)
+
+
+def handle_position(context: ProcessContext, pos: PositionDefine, vpd: ValuationReportData):
+    pass
 
 
 def process_product(context: ProcessContext, vpd: ValuationReportData):
-    pro = context.config.product
-    Model = getattr(MODEL, pro.model)
+    config = context.config
+    if config.product is None:
+        return
 
-    logger.debug(f"开始处理指标表:{pro.model}")
+    pro = config.product
+    logger.debug(f"开始处理指标表:{pro.table}")
 
-    m = Model()
-    for v in pro.values:
-        logger.debug(f"处理指标表字段:{v.column}")
-        if v.cell:
-            set_value(m, v, capture_data(context, v.cell))
-        elif v.formula:
-            d = custom_eval(v.formula, m.__dict__)
-            set_value(m, v, d)
-        else:
-            set_value(m, v, v.value)
-    vpd.product = m
+    context.current_model = {"__TABLE__": pro.table}
+    for k, v in pro.values:
+        logger.debug(f"处理指标表字段:{k}")
+        context.current_model[k] = handle_value(context, v)
+
+    vpd.product = context.current_model
+
+
+def handle_value(context: ProcessContext, define: DataCell | str | int | float):
+    if isinstance(define, str):
+        if define in context.env:
+            return context.env.get(define)
+        return define
+
+    if isinstance(define, int) or isinstance(define, float):
+        return define
+
+    if define.formula is not None:
+        return custom_eval(define.formula, context.current_model)
+
+    return capture_data(context, define, context.current_row)
 
 
 def process_excel_file_data(file, config: ExcelConfig) -> ValuationReportData:
     sheet = p.get_sheet(file_name=file)
     context = ProcessContext(sheet, config)
     context.env["$FILE_NAME"] = file
+    context.env["$PROCESS_TIME"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     for i in range(len(sheet)):
         code = sheet.cell_value(i, context.subject_column)

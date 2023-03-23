@@ -16,7 +16,7 @@ from base.db_mysql import init_db
 from base.logger import logger
 from excel.sink import check_db_settings, save_result_to_file, save_result_to_db
 
-__version__ = "0.1.14"
+__version__ = "2.0.0"
 
 
 def current_dir_files():
@@ -30,6 +30,8 @@ def main():
                         version=__version__, help="display app version.")
     parser.add_argument("-d", "--dir", default=".", type=str,
                         help="指定工作目录，程序会在工作目录中检索可用的估值表文件。如果不设定，默认为当前工作目录。")
+    parser.add_argument("-c", "--config", default="config.json", type=str,
+                        help="指定配置文件")
     parser.add_argument("--connection_url", default="", type=str,
                         help="指定目标数据库的链接字符串")
     parser.add_argument("--debug", action="store_true", default=False,
@@ -49,7 +51,7 @@ def main():
     logger.debug(f"工作目录为：{os.path.abspath(args.dir)}")
     check_db_settings(args)
 
-    with open('config.json', 'r', encoding="utf-8") as f:
+    with open(args.config, 'r', encoding="utf-8") as f:
         config = json.load(f, object_hook=obj_json_hook)
 
         files = current_dir_files()

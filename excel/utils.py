@@ -1,25 +1,18 @@
-from excel.define import DataCell, ExcelConfig, PositionDefine, ProductDefine, SubjectDefine, ValueDefine
+from typing import Any, Iterable, Iterator
+
+
+class Dict:
+    def __init__(self, data: dict):
+        self.data = data
+
+    def __getattr__(self, __name: str) -> Any:
+        if __name in self.data:
+            return self.data.get(__name)
+        return None
+
+    def __iter__(self):
+        return iter(self.data.items())
 
 
 def obj_json_hook(dic: dict):
-    obj = None
-    if "default" in dic and "subjects" in dic:
-        obj = PositionDefine()
-    if "code" in dic and "values" in dic:
-        obj = SubjectDefine()
-    if ("cell" in dic or "formula" in dic or "value" in dic) and "column" in dic:
-        obj = ValueDefine()
-    if "address" in dic:
-        obj = DataCell()
-    if "subject_code_column" in dic and "positions" in dic:
-        obj = ExcelConfig()
-    if "model" in dic and "values" in dic:
-        obj = ProductDefine()
-    if obj is None:
-        return dic
-    else:
-        for k, v in dic.items():
-            setattr(obj, k, v)
-        if isinstance(obj, ValueDefine) and isinstance(obj.cell, str):
-            obj.cell = DataCell(obj.cell)
-        return obj
+    return Dict(dic)
