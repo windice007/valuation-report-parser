@@ -7,7 +7,6 @@ class DataCell:
         self.capture_regex: str = regex
         self.subject_code: str = None
         self.mapping: dict = None
-        self.value = None
         self.formula = None
 
 

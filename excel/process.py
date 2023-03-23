@@ -5,6 +5,7 @@ from typing import List
 from excel.define import DataCell, ExcelConfig, PositionDefine
 from pyexcel.sheet import Sheet
 from base.utils import excel_column_index, is_position_column_str, is_position_str
+from excel.utils import Dict
 import model.mysql_models as MODEL
 from base.logger import logger
 from sqlalchemy.orm.attributes import InstrumentedAttribute
@@ -214,7 +215,32 @@ def process_positions(context: ProcessContext, vpd: ValuationReportData):
 
 
 def handle_position(context: ProcessContext, pos: PositionDefine, vpd: ValuationReportData):
-    pass
+    sheet = context.sheet
+    if not isinstance(pos.groups, list):
+        logger.warn(f'没有有效的持仓定义:{pos.table}')
+        return
+    for group in pos.groups:
+        if not isinstance(group.handlers, list):
+            logger.warn(f'没有有效的处理配置:{pos.table}')
+            continue
+        for handler in group.handlers:
+            for i in range(len(sheet)):
+                code = sheet.cell_value(i, context.subject_column)
+                if code == '' or code == None:
+                    continue
+                if re.search(handler.subject_filter_regex, code):
+                    context.current_model = {"__TABLE__": pos.table}
+                    context.current_row = i
+                    process_data(context, pos.default)
+                    process_data(context, group.default)
+                    process_data(context, handler.values)
+                    vpd.details[code] = context.current_model
+
+
+def process_data(context: ProcessContext, data: Dict):
+    if isinstance(data, Dict):
+        for k, v in data:
+            context.current_model[k] = handle_value(context, v)
 
 
 def process_product(context: ProcessContext, vpd: ValuationReportData):
@@ -226,10 +252,7 @@ def process_product(context: ProcessContext, vpd: ValuationReportData):
     logger.debug(f"开始处理指标表:{pro.table}")
 
     context.current_model = {"__TABLE__": pro.table}
-    for k, v in pro.values:
-        logger.debug(f"处理指标表字段:{k}")
-        context.current_model[k] = handle_value(context, v)
-
+    process_data(context, pro.values)
     vpd.product = context.current_model
 
 
