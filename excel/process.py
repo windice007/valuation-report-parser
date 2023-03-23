@@ -246,6 +246,12 @@ def is_same_position(m1: dict, m2: dict, keys: list[str]):
     if m1['__tablename__'] != m2['__tablename__']:
         return False
     for key in keys:
+        if key not in m1 and key not in m2:
+            continue
+        if key not in m1 and key in m2:
+            return False
+        if key in m1 and key not in m2:
+            return False
         if m1[key] != m2[key]:
             return False
     return True
