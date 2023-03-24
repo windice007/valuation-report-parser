@@ -54,9 +54,9 @@ def init_db(connection_url: str):
     DB_ENGINE = create_engine(connection_url)
 
 
-def make_expression(sink: MySQLTableSink, record: dict):
+def make_delete_expression(sink: MySQLTableSink, record: dict):
     table = sink.table
-    exp = table.update()
+    exp = table.delete()
     for key in sink.primary_columns:
         exp = exp.where(table.c[key] == record[key])
     return exp
@@ -68,8 +68,10 @@ def save_result_to_db(vpd: ValuationReportData):
     with DB_ENGINE.begin() as con:
         for record in vpd.details:
             sink = get_table_sink(record[TABLE_NAME])
-            con.execute(make_expression(sink, record), record)
+            con.execute(make_delete_expression(sink, record))
+            con.execute(sink.table.insert(), record)
         if vpd.product:
             sink = get_table_sink(vpd.product[TABLE_NAME])
-            con.execute(make_expression(sink, vpd.product), vpd.product)
+            con.execute(make_delete_expression(sink, vpd.product))
+            con.execute(sink.table.insert(), vpd.product)
     logger.info(f"估值数据写入数据库完成")
