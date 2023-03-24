@@ -67,6 +67,11 @@ def capture_data(context: ProcessContext, cell: DataCell, row: int = None) -> st
 
     if isinstance(cell.mapping, dict) and cell_value in cell.mapping:
         cell_value = cell.mapping.get(cell_value)
+
+    if cell.type == 'number' and isinstance(cell_value, str):
+        cell_value = convert_str_to_decimal(cell_value)
+    elif cell.type == 'str' and not isinstance(cell_value, str):
+        cell_value = str(cell_value)
     return cell_value
 
 
@@ -125,9 +130,6 @@ def handle_position(context: ProcessContext, pos: PositionDefine, vpd: Valuation
                     append_details(details, context.current_model)
 
     vpd.details.extend(details)
-
-
-
 
 
 def is_same_position(m1: dict, m2: dict, keys: list[str]):

@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Literal
 
 
 class DataCell:
@@ -7,7 +7,8 @@ class DataCell:
         self.capture_regex: str = regex
         self.subject_code: str = None
         self.mapping: dict = None
-        self.formula = None
+        self.formula: str = None
+        self.type: Literal['number', 'str', None] = None
 
 
 class HandlerDefine:
