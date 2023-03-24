@@ -1,50 +1,40 @@
-import decimal
-import json
-from sqlalchemy import CursorResult, Engine, Table, create_engine, text
-from urllib.parse import quote_plus
+from sqlalchemy import Engine, Table, create_engine, MetaData, DECIMAL
+
+from base import TABLE_NAME, ValuationReportData
+from base.logger import logger
 
 
 class MySQLTableSink:
+    meta_data = MetaData()
+
     def __init__(self, engine: Engine, table: str) -> None:
         self._engine = engine
-        self.table = table
+        self.table = Table(table, MySQLTableSink.meta_data,
+                           autoload_with=self._engine)
         self.schema = self._engine.url.database
-        self.table_schema = self._fetch_table_schema()
+
         self._primary_columns = None
 
-    def _fetch_table_schema(self):
-        sql = f"SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = '{self.schema}' AND TABLE_NAME ='{self.table}'"
-        with self._engine.connect() as con:
-            rs: CursorResult = con.execute(text(sql))
-            rows = rs.mappings().fetchall()
-            dic = {}
-            for row in rows:
-                dic[row['COLUMN_NAME']] = row
-            return dic
-
     def column_schema(self, column: str):
-        return self.table_schema.get(column)
+        return self.table.columns.get(column)
 
     def has_column(self, column: str):
-        return column in self.table_schema
-
-    def get_column_type(self, column: str):
-        return self.table_schema.get(column)['DATA_TYPE']
+        return column in self.table.columns
 
     def is_decimal(self, column: str):
-        return self.get_column_type(column) == 'decimal'
+        if not self.has_column(column):
+            return False
+        column_schema = self.column_schema(column)
+        return isinstance(column_schema.type, DECIMAL)
 
     @property
     def primary_columns(self):
         if self._primary_columns is None:
             self._primary_columns = []
-            for k, column in self.table_schema.items():
-                if column['COLUMN_KEY'] == 'PRI':
+            for k, c in self.table.columns.items():
+                if c.primary_key:
                     self._primary_columns.append(k)
         return self._primary_columns
-
-    def display(self):
-        print(self.table_schema)
 
 
 __sinks__: dict[str, MySQLTableSink] = {}
@@ -62,3 +52,24 @@ DB_ENGINE: Engine = None
 def init_db(connection_url: str):
     global DB_ENGINE
     DB_ENGINE = create_engine(connection_url)
+
+
+def make_expression(sink: MySQLTableSink, record: dict):
+    table = sink.table
+    exp = table.update()
+    for key in sink.primary_columns:
+        exp = exp.where(table.c[key] == record[key])
+    return exp
+
+
+def save_result_to_db(vpd: ValuationReportData):
+    if DB_ENGINE is None:
+        return
+    with DB_ENGINE.begin() as con:
+        for record in vpd.details:
+            sink = get_table_sink(record[TABLE_NAME])
+            con.execute(make_expression(sink, record), record)
+        if vpd.product:
+            sink = get_table_sink(vpd.product[TABLE_NAME])
+            con.execute(make_expression(sink, vpd.product), vpd.product)
+    logger.info(f"估值数据写入数据库完成")

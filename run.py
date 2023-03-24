@@ -1,9 +1,8 @@
-from configparser import ConfigParser
 import json
 import logging
+from base.db_mysql import save_result_to_db
 
 from excel.process import process_excel_file_data as process
-from excel.process import ValuationReportData
 from excel.utils import obj_json_hook
 import pyexcel_xls
 import pyexcel_xlsx
@@ -11,9 +10,8 @@ import pyexcel_io.writers
 import os
 import glob
 import argparse
-from base.db_mysql import init_db
 from base.logger import logger
-from excel.sink import check_db_settings, save_result_to_file, save_result_to_db
+from excel.sink import check_db_settings, save_result_to_file
 
 __version__ = "2.0.0"
 

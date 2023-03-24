@@ -36,11 +36,3 @@ def check_db_settings(args: object):
         init_db(db_url)
     else:
         logger.warn(f"目标数据库配置未找到，请检查参数--connection_url 或者 settings.ini")
-
-
-def clear_db_data(vpd: ValuationReportData):
-    pass
-
-
-def save_result_to_db(vpd: ValuationReportData):
-    pass

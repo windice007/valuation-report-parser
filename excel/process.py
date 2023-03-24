@@ -1,6 +1,7 @@
 
 import re
 import pyexcel as p
+from base import DATASOUCE, TABLE_NAME, ValuationReportData
 from base.db_mysql import get_table_sink
 from excel.define import DataCell, ExcelConfig, PositionDefine
 from pyexcel.sheet import Sheet
@@ -24,12 +25,6 @@ class ProcessContext:
         self.env = {}
         self.current_row = -1
         self.current_model = {}
-
-
-class ValuationReportData:
-    def __init__(self) -> None:
-        self.details = []
-        self.product = None
 
 
 def capture_data(context: ProcessContext, cell: DataCell, row: int = None) -> str:
@@ -132,8 +127,7 @@ def handle_position(context: ProcessContext, pos: PositionDefine, vpd: Valuation
     vpd.details.extend(details)
 
 
-TABLE_NAME = "__tablename__"
-DATASOUCE = "__datasource__"
+
 
 
 def is_same_position(m1: dict, m2: dict, keys: list[str]):
