@@ -61,8 +61,11 @@ def capture_data(context: ProcessContext, cell: DataCell, row: int = None) -> st
 
     if cell.capture_regex != None:
         match = re.search(re.compile(cell.capture_regex), cell_value)
-        if match and len(match.groups()) > 0:
-            cell_value = match[1]
+        if match:
+            if len(match.groups()) > 0:
+                cell_value = match[1]
+            else:
+                cell_value = match[0]
         else:
             logger.warn(f"未捕获到指定字段：[{cell_value}]@[{cell.capture_regex}]")
             cell_value = None
@@ -73,7 +76,7 @@ def capture_data(context: ProcessContext, cell: DataCell, row: int = None) -> st
 
 
 def get_cell_subject_code(context: ProcessContext, cell: DataCell, row: int = None) -> str:
-    if isinstance(cell.subject_code, DataCell):
+    if isinstance(cell.subject_code, Dict):
         return capture_data(context, cell.subject_code, row)
     return cell.subject_code
 
