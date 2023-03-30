@@ -1,7 +1,6 @@
 from datetime import datetime
 import json
 import logging
-from base.db_mysql import save_result_to_db
 
 from excel.process import process_excel_file_data as process
 from excel.utils import obj_json_hook
@@ -12,7 +11,7 @@ import os
 import glob
 import argparse
 from base.logger import logger
-from excel.sink import check_db_settings, save_result_to_file
+from excel.sink import FileSink, check_db_settings
 import pyexcel
 
 __version__ = "2.0.0"
@@ -48,7 +47,8 @@ def main():
     logger.info(f"{parser.description} {__version__}")
 
     logger.debug(f"工作目录为：{os.path.abspath(args.dir)}")
-    check_db_settings(args)
+    db_sink = check_db_settings(args)
+    file_sink = FileSink()
 
     with open(args.config, 'r', encoding="utf-8") as f:
         config = json.load(f, object_hook=obj_json_hook)
@@ -61,9 +61,11 @@ def main():
         for file in current_dir_files():
             logger.info(f"开始处理估值文件：{file}")
             vpd = process(pyexcel.get_sheet(file_name=file),
-                          config, {"$FILE_NAME": file, "$PROCESS_TIME": datetime.now().strftime("%Y-%m-%d %H:%M:%S")})
-            save_result_to_file(vpd, file)
-            save_result_to_db(vpd)
+                          config, {"$FILE_NAME": file, "$PROCESS_TIME": datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "$DB_SINK": db_sink})
+
+            file_sink.save(vpd, file_name=file)
+            if db_sink:
+                db_sink.save(vpd)
 
 
 if __name__ == "__main__":

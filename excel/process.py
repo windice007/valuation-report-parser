@@ -1,13 +1,14 @@
 
 import re
 from base import DATASOUCE, TABLE_NAME, ValuationReportData
-from base.db_mysql import get_table_sink
 from excel.define import DataCell, ExcelConfig, PositionDefine
 from pyexcel.sheet import Sheet
 from base.utils import excel_column_index, is_position_column_str, is_position_str
+from excel.sink import DbSink
 from excel.utils import Dict
 from base.logger import logger
 from decimal import Decimal
+from sqlalchemy import Table, DECIMAL
 
 
 class ProcessContext:
@@ -125,7 +126,7 @@ def handle_position(context: ProcessContext, pos: PositionDefine, vpd: Valuation
                     process_data(context, pos.default)
                     process_data(context, group.default)
                     process_data(context, handler.values)
-                    append_details(details, context.current_model)
+                    append_details(context, details, context.current_model)
 
     vpd.details.extend(details)
 
@@ -152,17 +153,17 @@ def merge_dict(d1: dict, d2: dict):
     d1[DATASOUCE].extend(d2[DATASOUCE])
 
 
-def get_db_sink(model: dict):
-    table = model[TABLE_NAME]
-    return get_table_sink(table)
+def get_table_schema(context: ProcessContext, table_name: str):
+    db_sink: DbSink = context.env["$DB_SINK"]
+    return db_sink.get_table(table_name)
 
 
-def append_details(details: list, model: dict):
-    sink = get_db_sink(model)
-    pris = sink.primary_columns
+def append_details(context: ProcessContext, details: list, model: dict):
+    table: Table = get_table_schema(context, model[TABLE_NAME])
+    keys = table.primary_key.columns.keys()
 
     target = next(
-        (x for x in details if is_same_position(x, model, pris)), None)
+        (x for x in details if is_same_position(x, model, keys)), None)
 
     if target:
         merge_dict(target, model)
@@ -172,10 +173,11 @@ def append_details(details: list, model: dict):
 
 def process_data(context: ProcessContext, data: Dict):
     if isinstance(data, Dict):
-        sink = get_db_sink(context.current_model)
+        table: Table = get_table_schema(
+            context, context.current_model[TABLE_NAME])
         for k, v in data:
             val = handle_value(context, v)
-            if sink.has_column(k) and isinstance(val, str) and sink.is_decimal(k):
+            if k in table.columns and isinstance(val, str) and isinstance(table.columns[k].type, DECIMAL):
                 val = convert_str_to_decimal(val)
             context.current_model[k] = val
 
