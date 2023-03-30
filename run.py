@@ -1,3 +1,4 @@
+from datetime import datetime
 import json
 import logging
 from base.db_mysql import save_result_to_db
@@ -12,6 +13,7 @@ import glob
 import argparse
 from base.logger import logger
 from excel.sink import check_db_settings, save_result_to_file
+import pyexcel
 
 __version__ = "2.0.0"
 
@@ -58,7 +60,8 @@ def main():
 
         for file in current_dir_files():
             logger.info(f"开始处理估值文件：{file}")
-            vpd = process(file, config)
+            vpd = process(pyexcel.get_sheet(file_name=file),
+                          config, {"$FILE_NAME": file, "$PROCESS_TIME": datetime.now().strftime("%Y-%m-%d %H:%M:%S")})
             save_result_to_file(vpd, file)
             save_result_to_db(vpd)
 

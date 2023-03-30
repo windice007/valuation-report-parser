@@ -1,6 +1,5 @@
 
 import re
-import pyexcel as p
 from base import DATASOUCE, TABLE_NAME, ValuationReportData
 from base.db_mysql import get_table_sink
 from excel.define import DataCell, ExcelConfig, PositionDefine
@@ -9,7 +8,6 @@ from base.utils import excel_column_index, is_position_column_str, is_position_s
 from excel.utils import Dict
 from base.logger import logger
 from decimal import Decimal
-from datetime import datetime
 
 
 class ProcessContext:
@@ -214,11 +212,9 @@ def handle_value(context: ProcessContext, define: DataCell | str | int | float):
     return capture_data(context, define, context.current_row)
 
 
-def process_excel_file_data(file, config: ExcelConfig) -> ValuationReportData:
-    sheet = p.get_sheet(file_name=file)
+def process_excel_file_data(sheet: Sheet, config: ExcelConfig, env: dict) -> ValuationReportData:
     context = ProcessContext(sheet, config)
-    context.env["$FILE_NAME"] = file
-    context.env["$PROCESS_TIME"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    context.env.update(env)
 
     for i in range(len(sheet)):
         code = sheet.cell_value(i, context.subject_column)
