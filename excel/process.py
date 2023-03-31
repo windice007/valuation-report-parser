@@ -1,6 +1,6 @@
 
 import re
-from base import DATASOUCE, TABLE_NAME, ValuationReportData
+from base import DATASOUCE, ENV_DEBUG, TABLE_NAME, ValuationReportData, ENV_DB_SINK
 from excel.define import DataCell, ExcelConfig, PositionDefine
 from pyexcel.sheet import Sheet
 from base.utils import excel_column_index, is_position_column_str, is_position_str
@@ -24,6 +24,7 @@ class ProcessContext:
         self.env = {}
         self.current_row = -1
         self.current_model = {}
+        self.is_debug = False
 
 
 def capture_data(context: ProcessContext, cell: DataCell, row: int = None) -> str:
@@ -121,7 +122,8 @@ def handle_position(context: ProcessContext, pos: PositionDefine, vpd: Valuation
                     continue
                 if re.search(handler.subject_filter_regex, code):
                     context.current_model = create_model(pos.table)
-                    context.current_model[DATASOUCE] = [code]
+                    if context.is_debug:
+                        context.current_model[DATASOUCE] = [code]
                     context.current_row = i
                     process_data(context, pos.default)
                     process_data(context, group.default)
@@ -146,15 +148,8 @@ def is_same_position(m1: dict, m2: dict, keys: list[str]):
     return True
 
 
-def merge_dict(d1: dict, d2: dict):
-    for k, v in d2.items():
-        if k not in d1:
-            d1[k] = v
-    d1[DATASOUCE].extend(d2[DATASOUCE])
-
-
 def get_table_schema(context: ProcessContext, table_name: str):
-    db_sink: DbSink = context.env["$DB_SINK"]
+    db_sink: DbSink = context.env[ENV_DB_SINK]
     return db_sink.get_table(table_name)
 
 
@@ -166,7 +161,11 @@ def append_details(context: ProcessContext, details: list, model: dict):
         (x for x in details if is_same_position(x, model, keys)), None)
 
     if target:
-        merge_dict(target, model)
+        for k, v in model.items():
+            if k not in target:
+                target[k] = v
+        if context.is_debug:
+            target[DATASOUCE].extend(model[DATASOUCE])
     else:
         details.append(model)
 
@@ -217,6 +216,7 @@ def handle_value(context: ProcessContext, define: DataCell | str | int | float):
 def process_excel_file_data(sheet: Sheet, config: ExcelConfig, env: dict) -> ValuationReportData:
     context = ProcessContext(sheet, config)
     context.env.update(env)
+    context.is_debug = env.get(ENV_DEBUG, False)
 
     for i in range(len(sheet)):
         code = sheet.cell_value(i, context.subject_column)

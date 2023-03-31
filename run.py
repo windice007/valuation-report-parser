@@ -13,6 +13,7 @@ import argparse
 from base.logger import logger
 from excel.sink import FileSink, check_db_settings
 import pyexcel
+from base import ENV_FILE_NAME, ENV_PROCESS_TIME, ENV_DB_SINK, ENV_DEBUG
 
 __version__ = "2.0.0"
 
@@ -61,9 +62,9 @@ def main():
         for file in current_dir_files():
             logger.info(f"开始处理估值文件：{file}")
             vpd = process(pyexcel.get_sheet(file_name=file),
-                          config, {"$FILE_NAME": file, "$PROCESS_TIME": datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "$DB_SINK": db_sink})
+                          config, {ENV_FILE_NAME: file, ENV_PROCESS_TIME: datetime.now().strftime("%Y-%m-%d %H:%M:%S"), ENV_DB_SINK: db_sink, ENV_DEBUG: args.debug})
 
-            file_sink.save(vpd, file_name=file)
+            file_sink.save(vpd, file_name=file, debug=args.debug)
             if db_sink:
                 db_sink.save(vpd)
 
