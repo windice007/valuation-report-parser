@@ -8,4 +8,4 @@ __pycache__
 /*.json
 
 /*.egg-info
-/settings.ini
+/*.ini
