@@ -185,13 +185,17 @@ class TableProxy(object):
 
 def get_table_schema(context: ProcessContext, table_name: str):
     db_sink: DbSink = context.env[ENV_DB_SINK]
-    return TableProxy(db_sink.get_table(table_name))
+    return TableProxy(db_sink.get_table(table_name)) if db_sink is not None else None
 
 
 def append_details(context: ProcessContext, details: list, model: dict):
     table: TableProxy = get_table_schema(context, model[TABLE_NAME])
-    keys = table.keys()
 
+    if table is None:
+        details.append(model)
+        return
+
+    keys = table.keys()
     target = next(
         (x for x in details if is_same_position(x, model, keys)), None)
 
@@ -211,7 +215,7 @@ def process_data(context: ProcessContext, data: Dict):
             context, context.current_model[TABLE_NAME])
         for k, v in data:
             val = handle_value(context, v)
-            if table.get_column(k) is not None and isinstance(val, str):
+            if table is not None and table.get_column(k) is not None and isinstance(val, str):
                 if table.is_number(k):
                     val = convert_str_to_decimal(val)
                 elif table.is_oracle_date(k):

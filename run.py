@@ -70,7 +70,7 @@ def main():
                           config, {ENV_FILE_NAME: file, ENV_PROCESS_TIME: datetime.now().strftime("%Y-%m-%d %H:%M:%S"), ENV_DB_SINK: db_sink, ENV_DEBUG: args.debug})
 
             file_sink.save(vpd, file_name=file, debug=args.debug)
-            if db_sink:
+            if db_sink is not None:
                 db_sink.save(vpd)
 
 
