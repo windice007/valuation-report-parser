@@ -4,9 +4,14 @@ import logging
 
 from excel.process import process_excel_file_data as process
 from excel.utils import obj_json_hook
+
+# hidden import
 import pyexcel_xls
 import pyexcel_xlsx
 import pyexcel_io.writers
+from cryptography.hazmat.primitives.kdf import pbkdf2
+import encodings.idna
+
 import os
 import glob
 import argparse
