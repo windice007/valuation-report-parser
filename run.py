@@ -10,7 +10,6 @@ import pyexcel_xls
 import pyexcel_xlsx
 import pyexcel_io.writers
 from cryptography.hazmat.primitives.kdf import pbkdf2
-import encodings.idna
 
 import os
 import glob
@@ -24,22 +23,33 @@ __version__ = "0.2.0"
 
 
 def current_dir_files():
-    result = glob.glob("*.xls")+glob.glob("*.xlsx")
+    result = glob.glob("*.xls") + glob.glob("*.xlsx")
     return list(filter(lambda x: not x.startswith("~$"), result))
 
 
 def main():
     parser = argparse.ArgumentParser(description="估值表解析程序")
-    parser.add_argument("-v", "--version", action="version",
-                        version=__version__, help="display app version.")
-    parser.add_argument("-d", "--dir", default=".", type=str,
-                        help="指定工作目录，程序会在工作目录中检索可用的估值表文件。如果不设定，默认为当前工作目录。")
-    parser.add_argument("-c", "--config", default="config.json", type=str,
-                        help="指定配置文件")
-    parser.add_argument("--connection_url", default="", type=str,
-                        help="指定目标数据库的链接字符串")
-    parser.add_argument("--debug", action="store_true", default=False,
-                        help="启用debug模式，会输出更多信息。")
+    parser.add_argument(
+        "-v",
+        "--version",
+        action="version",
+        version=__version__,
+        help="display app version.",
+    )
+    parser.add_argument(
+        "-d",
+        "--dir",
+        default=".",
+        type=str,
+        help="指定工作目录，程序会在工作目录中检索可用的估值表文件。如果不设定，默认为当前工作目录。",
+    )
+    parser.add_argument(
+        "-c", "--config", default="config.json", type=str, help="指定配置文件"
+    )
+    parser.add_argument("--connection_url", default="", type=str, help="指定目标数据库的链接字符串")
+    parser.add_argument(
+        "--debug", action="store_true", default=False, help="启用debug模式，会输出更多信息。"
+    )
 
     args = parser.parse_args()
 
@@ -56,7 +66,7 @@ def main():
     db_sink = check_db_settings(args)
     file_sink = FileSink()
 
-    with open(args.config, 'r', encoding="utf-8") as f:
+    with open(args.config, "r", encoding="utf-8") as f:
         config = json.load(f, object_hook=obj_json_hook)
 
         files = current_dir_files()
@@ -66,8 +76,16 @@ def main():
 
         for file in current_dir_files():
             logger.info(f"开始处理估值文件：{file}")
-            vpd = process(pyexcel.get_sheet(file_name=file),
-                          config, {ENV_FILE_NAME: file, ENV_PROCESS_TIME: datetime.now().strftime("%Y-%m-%d %H:%M:%S"), ENV_DB_SINK: db_sink, ENV_DEBUG: args.debug})
+            vpd = process(
+                pyexcel.get_sheet(file_name=file),
+                config,
+                {
+                    ENV_FILE_NAME: file,
+                    ENV_PROCESS_TIME: datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    ENV_DB_SINK: db_sink,
+                    ENV_DEBUG: args.debug,
+                },
+            )
 
             file_sink.save(vpd, file_name=file, debug=args.debug)
             if db_sink is not None:
