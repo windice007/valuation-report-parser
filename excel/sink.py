@@ -1,4 +1,5 @@
 from configparser import ConfigParser
+from datetime import datetime
 import decimal
 import json
 from base.logger import logger
@@ -14,6 +15,10 @@ class Sink(object):
 def obj_json_default(obj):
     if type(obj) is decimal.Decimal:
         return float(obj)
+    if type(obj) is datetime:
+        if obj.hour == 0 and obj.minute == 0 and obj.second == 0:
+            return obj.strftime("%Y-%m-%d")
+        return obj.strftime("%Y-%m-%d %H:%M:%S")
     return obj
 
 
@@ -33,10 +38,16 @@ class DbSink(Sink):
         self.meta_data = MetaData()
 
     def get_table(self, table_name: str) -> Table:
+        if self.db_type == "oracle":
+            table_name = table_name.lower()
         table = self.meta_data.tables.get(table_name)
         if table is not None:
             return table
         return Table(table_name, self.meta_data, autoload_with=self.engine)
+
+    @property
+    def db_type(self) -> str:
+        return self.engine.name
 
     def make_delete_expression(self, table: Table, record: dict):
         exp = table.delete()
@@ -52,11 +63,17 @@ class DbSink(Sink):
             for record in vpd.details:
                 table = self.get_table(record[TABLE_NAME])
                 con.execute(self.make_delete_expression(table, record))
-                con.execute(table.insert(), record)
+                if self.db_type == "oracle":
+                    con.execute(table.insert(), record.to_lower_dict())
+                else:
+                    con.execute(table.insert(), record)
             if vpd.product:
                 table = self.get_table(vpd.product[TABLE_NAME])
                 con.execute(self.make_delete_expression(table, vpd.product))
-                con.execute(table.insert(), vpd.product)
+                if self.db_type == "oracle":
+                    con.execute(table.insert(), vpd.product.to_lower_dict())
+                else:
+                    con.execute(table.insert(), vpd.product)
         logger.info(f"估值数据写入数据库完成")
 
 

@@ -1,6 +1,7 @@
 
+from datetime import datetime
 import re
-from base import DATASOUCE, ENV_DEBUG, TABLE_NAME, ValuationReportData, ENV_DB_SINK
+from base import DATASOUCE, ENV_DEBUG, TABLE_NAME, CaseDict, ValuationReportData, ENV_DB_SINK
 from excel.define import DataCell, ExcelConfig, PositionDefine
 from pyexcel.sheet import Sheet
 from base.utils import excel_column_index, is_position_column_str, is_position_str
@@ -8,7 +9,9 @@ from excel.sink import DbSink
 from excel.utils import Dict
 from base.logger import logger
 from decimal import Decimal
-from sqlalchemy import Table, DECIMAL
+from sqlalchemy import Table, Numeric
+from sqlalchemy.dialects.oracle.types import DATE
+from dateutil.parser import parse as parse_date
 
 
 class ProcessContext:
@@ -25,6 +28,10 @@ class ProcessContext:
         self.current_row = -1
         self.current_model = {}
         self.is_debug = False
+
+    def is_oracle(self) -> bool:
+        db_sink: DbSink = self.env[ENV_DB_SINK]
+        return db_sink.db_type == "oracle"
 
 
 def capture_data(context: ProcessContext, cell: DataCell, row: int = None) -> str:
@@ -91,6 +98,10 @@ def convert_str_to_decimal(v: str) -> Decimal:
         return Decimal(v)
 
 
+def convert_str_to_date(v: str) -> datetime:
+    return parse_date(v)
+
+
 def custom_eval(formula: str, local: dict):
     if isinstance(local, dict):
         return eval(formula, None, local)
@@ -148,14 +159,38 @@ def is_same_position(m1: dict, m2: dict, keys: list[str]):
     return True
 
 
+class TableProxy(object):
+    def __init__(self, table: Table):
+        self.table = table
+
+    def keys(self):
+        return self.table.columns.keys()
+
+    def get_column(self, name: str):
+        if name in self.table.columns:
+            return self.table.columns[name]
+        for k, v in self.table.columns.items():
+            if k.lower() == name.lower():
+                return v
+        return None
+
+    def is_number(self, name: str):
+        column = self.get_column(name)
+        return isinstance(column.type, Numeric)
+
+    def is_oracle_date(self, name: str):
+        column = self.get_column(name)
+        return isinstance(column.type, DATE)
+
+
 def get_table_schema(context: ProcessContext, table_name: str):
     db_sink: DbSink = context.env[ENV_DB_SINK]
-    return db_sink.get_table(table_name)
+    return TableProxy(db_sink.get_table(table_name))
 
 
 def append_details(context: ProcessContext, details: list, model: dict):
-    table: Table = get_table_schema(context, model[TABLE_NAME])
-    keys = table.primary_key.columns.keys()
+    table: TableProxy = get_table_schema(context, model[TABLE_NAME])
+    keys = table.keys()
 
     target = next(
         (x for x in details if is_same_position(x, model, keys)), None)
@@ -172,17 +207,20 @@ def append_details(context: ProcessContext, details: list, model: dict):
 
 def process_data(context: ProcessContext, data: Dict):
     if isinstance(data, Dict):
-        table: Table = get_table_schema(
+        table: TableProxy = get_table_schema(
             context, context.current_model[TABLE_NAME])
         for k, v in data:
             val = handle_value(context, v)
-            if k in table.columns and isinstance(val, str) and isinstance(table.columns[k].type, DECIMAL):
-                val = convert_str_to_decimal(val)
+            if table.get_column(k) is not None and isinstance(val, str):
+                if table.is_number(k):
+                    val = convert_str_to_decimal(val)
+                elif table.is_oracle_date(k):
+                    val = convert_str_to_date(val)
             context.current_model[k] = val
 
 
 def create_model(table: str):
-    return {TABLE_NAME: table}
+    return CaseDict({TABLE_NAME: table})
 
 
 def process_product(context: ProcessContext, vpd: ValuationReportData):
