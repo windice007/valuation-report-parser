@@ -1,4 +1,4 @@
-from typing import Any, Iterable, Iterator
+from typing import Any
 
 
 class Dict:

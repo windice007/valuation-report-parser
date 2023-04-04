@@ -2,8 +2,10 @@ from configparser import ConfigParser
 from datetime import datetime
 import decimal
 import json
+import os
+import sys
 from base.logger import logger
-from sqlalchemy import Engine, Table, create_engine, MetaData, DECIMAL
+from sqlalchemy import Table, create_engine, MetaData
 from base import TABLE_NAME, ValuationReportData
 
 
@@ -77,13 +79,25 @@ class DbSink(Sink):
         logger.info(f"估值数据写入数据库完成")
 
 
+def search_settings_file() -> str:
+    p1 = os.path.join(os.getcwd(), 'settings.ini')
+    p2 = os.path.join(os.path.dirname(sys.executable), 'settings.ini')
+    if os.path.exists(p1):
+        return p1
+    if os.path.exists(p2):
+        return p2
+    return None
+
+
 def get_db_connection_url(args: object):
     if args.connection_url != '':
         return args.connection_url
     cp = ConfigParser()
-    cp.read('settings.ini')
-    if cp.has_option("database", "connection_url"):
-        return cp.get("database", "connection_url")
+    settings_file = search_settings_file()
+    if settings_file:
+        cp.read(settings_file)
+        if cp.has_option("database", "connection_url"):
+            return cp.get("database", "connection_url")
     return None
 
 
