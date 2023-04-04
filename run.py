@@ -20,7 +20,7 @@ from excel.sink import FileSink, check_db_settings
 import pyexcel
 from base import ENV_FILE_NAME, ENV_PROCESS_TIME, ENV_DB_SINK, ENV_DEBUG
 
-__version__ = "2.0.0"
+__version__ = "0.2.0"
 
 
 def current_dir_files():
