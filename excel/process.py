@@ -10,7 +10,6 @@ from excel.utils import Dict
 from base.logger import logger
 from decimal import Decimal
 from sqlalchemy import Table, Numeric
-from sqlalchemy.dialects.oracle.types import DATE
 from dateutil.parser import parse as parse_date
 
 
@@ -179,8 +178,7 @@ class TableProxy(object):
         return isinstance(column.type, Numeric)
 
     def is_oracle_date(self, name: str):
-        column = self.get_column(name)
-        return isinstance(column.type, DATE)
+        return False
 
 
 def get_table_schema(context: ProcessContext, table_name: str):
