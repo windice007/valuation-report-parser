@@ -163,7 +163,7 @@ class TableProxy(object):
         self.table = table
 
     def keys(self):
-        return self.table.columns.keys()
+        return self.table.primary_key.columns.keys()
 
     def get_column(self, name: str):
         if name in self.table.columns:
