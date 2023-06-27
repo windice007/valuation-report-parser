@@ -1,4 +1,4 @@
-from configparser import ConfigParser
+from configparser import RawConfigParser
 from datetime import datetime
 import decimal
 import json
@@ -92,7 +92,7 @@ def search_settings_file() -> str:
 def get_db_connection_url(args: object):
     if args.connection_url != '':
         return args.connection_url
-    cp = ConfigParser()
+    cp = RawConfigParser()
     settings_file = search_settings_file()
     if settings_file:
         cp.read(settings_file)
