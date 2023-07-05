@@ -6,7 +6,7 @@ greenlet==2.0.2
 lml==0.1.0
 opengauss-sqlalchemy==2.1.0
 openpyxl==3.1.2
-psycopg2==2.9.6
+psycopg2-binary==2.9.6
 pycparser==2.21
 pyexcel==0.7.0
 pyexcel-io==0.6.6
