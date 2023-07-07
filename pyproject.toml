@@ -3,7 +3,7 @@ requires = ["flit_core >=3.2,<4"]
 build-backend = "flit_core.buildapi"
 
 [project]
-name = "iquantex_vrp"
+name = "tools_vrp"
 authors = [{name = "fengbing", email = "bing.feng@iquantex.com"}]
 readme = "readme.md"
 license = {file = "LICENSE"}
