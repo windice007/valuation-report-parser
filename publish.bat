@@ -1,0 +1,1 @@
+flit publish --repository nexus
