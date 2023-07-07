@@ -1,13 +1,19 @@
-
 from datetime import datetime
 import re
-from base import DATASOUCE, ENV_DEBUG, TABLE_NAME, CaseDict, ValuationReportData, ENV_DB_SINK
-from excel.define import DataCell, ExcelConfig, PositionDefine
+from vrp.base import (
+    DATASOUCE,
+    ENV_DEBUG,
+    TABLE_NAME,
+    CaseDict,
+    ValuationReportData,
+    ENV_DB_SINK,
+)
+from vrp.excel.define import DataCell, ExcelConfig, PositionDefine
 from pyexcel.sheet import Sheet
-from base.utils import excel_column_index, is_position_column_str, is_position_str
-from excel.sink import DbSink
-from excel.utils import Dict
-from base.logger import logger
+from vrp.base.utils import excel_column_index, is_position_column_str, is_position_str
+from vrp.excel.sink import DbSink
+from vrp.excel.utils import Dict
+from vrp.base.logger import logger
 from decimal import Decimal
 from sqlalchemy import Table, Numeric
 from dateutil.parser import parse as parse_date
@@ -74,14 +80,16 @@ def capture_data(context: ProcessContext, cell: DataCell, row: int = None) -> st
     if isinstance(cell.mapping, dict) and cell_value in cell.mapping:
         cell_value = cell.mapping.get(cell_value)
 
-    if cell.type == 'number' and isinstance(cell_value, str):
+    if cell.type == "number" and isinstance(cell_value, str):
         cell_value = convert_str_to_decimal(cell_value)
-    elif cell.type == 'str' and not isinstance(cell_value, str):
+    elif cell.type == "str" and not isinstance(cell_value, str):
         cell_value = str(cell_value)
     return cell_value
 
 
-def get_cell_subject_code(context: ProcessContext, cell: DataCell, row: int = None) -> str:
+def get_cell_subject_code(
+    context: ProcessContext, cell: DataCell, row: int = None
+) -> str:
     if isinstance(cell.subject_code, Dict):
         return capture_data(context, cell.subject_code, row)
     return cell.subject_code
@@ -89,10 +97,10 @@ def get_cell_subject_code(context: ProcessContext, cell: DataCell, row: int = No
 
 def convert_str_to_decimal(v: str) -> Decimal:
     v = v.replace(",", "")
-    if v == '':
+    if v == "":
         return Decimal(0)
     elif v.endswith("%"):
-        return Decimal(v.rstrip("%"))/100
+        return Decimal(v.rstrip("%")) / 100
     else:
         return Decimal(v)
 
@@ -115,20 +123,22 @@ def process_positions(context: ProcessContext, vpd: ValuationReportData):
         handle_position(context, pos, vpd)
 
 
-def handle_position(context: ProcessContext, pos: PositionDefine, vpd: ValuationReportData):
+def handle_position(
+    context: ProcessContext, pos: PositionDefine, vpd: ValuationReportData
+):
     sheet = context.sheet
     if not isinstance(pos.groups, list):
-        logger.warn(f'没有有效的持仓定义:{pos.table}')
+        logger.warn(f"没有有效的持仓定义:{pos.table}")
         return
     details = []
     for group in pos.groups:
         if not isinstance(group.handlers, list):
-            logger.warn(f'没有有效的处理配置:{pos.table}')
+            logger.warn(f"没有有效的处理配置:{pos.table}")
             continue
         for handler in group.handlers:
             for i in range(len(sheet)):
                 code = sheet.cell_value(i, context.subject_column)
-                if code == '' or code == None:
+                if code == "" or code == None:
                     continue
                 if re.search(handler.subject_filter_regex, code):
                     context.current_model = create_model(pos.table)
@@ -194,8 +204,7 @@ def append_details(context: ProcessContext, details: list, model: dict):
         return
 
     keys = table.keys()
-    target = next(
-        (x for x in details if is_same_position(x, model, keys)), None)
+    target = next((x for x in details if is_same_position(x, model, keys)), None)
 
     if target:
         for k, v in model.items():
@@ -209,11 +218,14 @@ def append_details(context: ProcessContext, details: list, model: dict):
 
 def process_data(context: ProcessContext, data: Dict):
     if isinstance(data, Dict):
-        table: TableProxy = get_table_schema(
-            context, context.current_model[TABLE_NAME])
+        table: TableProxy = get_table_schema(context, context.current_model[TABLE_NAME])
         for k, v in data:
             val = handle_value(context, v)
-            if table is not None and table.get_column(k) is not None and isinstance(val, str):
+            if (
+                table is not None
+                and table.get_column(k) is not None
+                and isinstance(val, str)
+            ):
                 if table.is_number(k):
                     val = convert_str_to_decimal(val)
                 elif table.is_oracle_date(k):
@@ -253,14 +265,16 @@ def handle_value(context: ProcessContext, define: DataCell | str | int | float):
     return capture_data(context, define, context.current_row)
 
 
-def process_excel_file_data(sheet: Sheet, config: ExcelConfig, env: dict) -> ValuationReportData:
+def process_excel_file_data(
+    sheet: Sheet, config: ExcelConfig, env: dict
+) -> ValuationReportData:
     context = ProcessContext(sheet, config)
     context.env.update(env)
     context.is_debug = env.get(ENV_DEBUG, False)
 
     for i in range(len(sheet)):
         code = sheet.cell_value(i, context.subject_column)
-        if code == '' or code == None:
+        if code == "" or code == None:
             continue
         context.subject_row_map[code] = i
 

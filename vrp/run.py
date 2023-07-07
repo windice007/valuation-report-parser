@@ -5,8 +5,8 @@ from datetime import datetime
 import json
 import logging
 
-from excel.process import process_excel_file_data as process
-from excel.utils import obj_json_hook
+from vrp.excel.process import process_excel_file_data as process
+from vrp.excel.utils import obj_json_hook
 
 # hidden import
 import pyexcel_xls
@@ -17,12 +17,11 @@ from cryptography.hazmat.primitives.kdf import pbkdf2
 import os
 import glob
 import argparse
-from base.logger import logger
-from excel.sink import FileSink, check_db_settings
+from vrp.base.logger import logger
+from vrp.excel.sink import FileSink, check_db_settings
 import pyexcel
-from base import ENV_FILE_NAME, ENV_PROCESS_TIME, ENV_DB_SINK, ENV_DEBUG
-
-__version__ = "0.2.0"
+from vrp.base import ENV_FILE_NAME, ENV_PROCESS_TIME, ENV_DB_SINK, ENV_DEBUG
+from vrp import __version__
 
 
 def current_dir_files():

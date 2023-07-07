@@ -14,7 +14,7 @@ dynamic = ["version", "description"]
 Home = "https://www.iquantex.com"
 
 [project.scripts]
-vrp = "run:main"
+vrp = "vrp.run:main"
 
 [tool.flit.module]
-name = "run"
+name = "vrp"

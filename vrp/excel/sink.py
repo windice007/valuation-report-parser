@@ -4,9 +4,9 @@ import decimal
 import json
 import os
 import sys
-from base.logger import logger
+from vrp.base.logger import logger
 from sqlalchemy import Table, create_engine, MetaData
-from base import TABLE_NAME, ValuationReportData
+from vrp.base import TABLE_NAME, ValuationReportData
 
 
 class Sink(object):
@@ -26,10 +26,15 @@ def obj_json_default(obj):
 
 class FileSink(Sink):
     def save(self, vpd: ValuationReportData, **keyargs):
-        file = keyargs['file_name']
-        with open(f'{file}.json', 'w', encoding="utf-8") as writer:
-            json.dump({"positions": vpd.details, "product": vpd.product}, writer, default=obj_json_default,
-                      indent=2, ensure_ascii=False)
+        file = keyargs["file_name"]
+        with open(f"{file}.json", "w", encoding="utf-8") as writer:
+            json.dump(
+                {"positions": vpd.details, "product": vpd.product},
+                writer,
+                default=obj_json_default,
+                indent=2,
+                ensure_ascii=False,
+            )
         logger.info(f"估值数据写入文件完成")
 
 
@@ -80,8 +85,8 @@ class DbSink(Sink):
 
 
 def search_settings_file() -> str:
-    p1 = os.path.join(os.getcwd(), 'settings.ini')
-    p2 = os.path.join(os.path.dirname(sys.executable), 'settings.ini')
+    p1 = os.path.join(os.getcwd(), "settings.ini")
+    p2 = os.path.join(os.path.dirname(sys.executable), "settings.ini")
     if os.path.exists(p1):
         return p1
     if os.path.exists(p2):
@@ -90,7 +95,7 @@ def search_settings_file() -> str:
 
 
 def get_db_connection_url(args: object):
-    if args.connection_url != '':
+    if args.connection_url != "":
         return args.connection_url
     cp = RawConfigParser()
     settings_file = search_settings_file()
