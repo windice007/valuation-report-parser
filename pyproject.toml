@@ -4,11 +4,13 @@ build-backend = "flit_core.buildapi"
 
 [project]
 name = "tools-vrp"
-authors = [{name = "fengbing", email = "bing.feng@iquantex.com"}]
+authors = [{ name = "fengbing", email = "bing.feng@iquantex.com" }]
 readme = "readme.md"
-license = {file = "LICENSE"}
+license = { file = "LICENSE" }
 classifiers = ["License :: OSI Approved :: MIT License"]
 dynamic = ["version", "description"]
+requires-python = ">=3.6"
+dependencies = []
 
 [project.urls]
 Home = "https://www.iquantex.com"
