@@ -5,10 +5,10 @@ et-xmlfile==1.1.0
 greenlet==2.0.2
 lml==0.1.0
 opengauss-sqlalchemy==2.1.0
-openpyxl==3.1.2
+openpyxl==3.0.10
 psycopg2-binary==2.9.6
 pycparser==2.21
-pyexcel==0.7.0
+pyexcel==0.6.7
 pyexcel-io==0.6.6
 pyexcel-xls==0.7.0
 pyexcel-xlsx==0.6.0

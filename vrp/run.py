@@ -4,6 +4,7 @@ valuation report parser
 from datetime import datetime
 import json
 import logging
+from vrp.excel.define import ExcelConfig
 
 from vrp.excel.process import process_excel_file_data as process
 from vrp.excel.utils import obj_json_hook
@@ -65,12 +66,12 @@ def main():
 
     logger.info(f"{parser.description} {__version__}")
 
-    logger.debug(f"工作目录为：{os.path.abspath(args.dir)}")
+    logger.info(f"工作目录为：{os.path.abspath(args.dir)}")
     db_sink = check_db_settings(args)
     file_sink = FileSink()
 
     with open(args.config, "r", encoding="utf-8") as f:
-        config = json.load(f, object_hook=obj_json_hook)
+        config: ExcelConfig = json.load(f, object_hook=obj_json_hook)
 
         files = current_dir_files()
 
@@ -79,8 +80,9 @@ def main():
 
         for file in current_dir_files():
             logger.info(f"开始处理估值文件：{file}")
+            sheet = pyexcel.get_sheet(file_name=file, sheet_name=config.sheet_name)
             vpd = process(
-                pyexcel.get_sheet(file_name=file),
+                sheet,
                 config,
                 {
                     ENV_FILE_NAME: file,

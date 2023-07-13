@@ -8,7 +8,7 @@ class DataCell:
         self.subject_code: str = None
         self.mapping: dict = None
         self.formula: str = None
-        self.type: Literal['number', 'str', None] = None
+        self.type: Literal["number", "str", None] = None
 
 
 class HandlerDefine:
@@ -39,5 +39,6 @@ class ProductDefine:
 class ExcelConfig:
     def __init__(self) -> None:
         self.subject_code_column = "B"
+        self.sheet_name = None
         self.positions = []
         self.product: ProductDefine | None = None
