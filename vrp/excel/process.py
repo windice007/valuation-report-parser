@@ -67,7 +67,7 @@ def capture_data(context: ProcessContext, cell: DataCell, row: int = None) -> st
         return None
 
     if cell.capture_regex != None:
-        match = re.search(re.compile(cell.capture_regex), cell_value)
+        match = re.search(re.compile(cell.capture_regex), str(cell_value))
         if match:
             if len(match.groups()) > 0:
                 cell_value = match[1]
@@ -140,7 +140,7 @@ def handle_position(
                 code = sheet.cell_value(i, context.subject_column)
                 if code == "" or code == None:
                     continue
-                if re.search(handler.subject_filter_regex, code):
+                if re.search(handler.subject_filter_regex, str(code)):
                     context.current_model = create_model(pos.table)
                     if context.is_debug:
                         context.current_model[DATASOUCE] = [code]
@@ -277,6 +277,7 @@ def process_excel_file_data(
         if code == "" or code == None:
             continue
         context.subject_row_map[code] = i
+        context.subject_row_map[str(code)] = i
 
     vpd = ValuationReportData()
     process_positions(context, vpd)
