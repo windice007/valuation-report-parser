@@ -220,6 +220,7 @@ def process_data(context: ProcessContext, data: Dict):
     if isinstance(data, Dict):
         table: TableProxy = get_table_schema(context, context.current_model[TABLE_NAME])
         for k, v in data:
+            logger.debug(f"数据处理：{k}, {v}")
             val = handle_value(context, v)
             if (
                 table is not None

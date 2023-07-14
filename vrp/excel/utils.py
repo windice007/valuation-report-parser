@@ -13,6 +13,9 @@ class Dict:
     def __iter__(self):
         return iter(self.data.items())
 
+    def __str__(self) -> str:
+        return str(self.data)
+
 
 def obj_json_hook(dic: dict):
     return Dict(dic)
