@@ -118,6 +118,10 @@ def custom_eval(formula: str, local: dict):
 def process_positions(context: ProcessContext, vpd: ValuationReportData):
     config = context.config
 
+    if config.positions is None:
+        logger.warn(f"配置文件没有持仓定义，不会生成持仓数据")
+        return
+
     for pos in config.positions:
         logger.debug(f"处理持仓：{pos}")
         handle_position(context, pos, vpd)
@@ -241,6 +245,7 @@ def create_model(table: str):
 def process_product(context: ProcessContext, vpd: ValuationReportData):
     config = context.config
     if config.product is None:
+        logger.warn(f"配置文件没有产品定义，不会生成产品数据")
         return
 
     pro = config.product

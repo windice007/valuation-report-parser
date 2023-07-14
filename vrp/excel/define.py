@@ -1,4 +1,4 @@
-from typing import List, Literal
+from typing import List, Literal, Protocol
 
 
 class DataCell:
@@ -36,9 +36,8 @@ class ProductDefine:
         self.values = {}
 
 
-class ExcelConfig:
-    def __init__(self) -> None:
-        self.subject_code_column = "B"
-        self.sheet_name = None
-        self.positions = []
-        self.product: ProductDefine | None = None
+class ExcelConfig(Protocol):
+    subject_code_column: str
+    sheet_name: str | None
+    positions: List[PositionDefine] | None
+    product: ProductDefine | None
