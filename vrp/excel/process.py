@@ -140,6 +140,8 @@ def handle_position(
             logger.warn(f"没有有效的处理配置:{pos.table}")
             continue
         for handler in group.handlers:
+            logger.debug(f"Handler:{handler.subject_filter_regex}")
+            handle_count = 0
             for i in range(len(sheet)):
                 code = sheet.cell_value(i, context.subject_column)
                 if code == "" or code == None:
@@ -153,6 +155,15 @@ def handle_position(
                     process_data(context, group.default)
                     process_data(context, handler.values)
                     append_details(context, details, context.current_model)
+                    handle_count = handle_count + 1
+            if handle_count > 0:
+                logger.info(
+                    f"Handler:{handler.subject_filter_regex}  Count:{handle_count}"
+                )
+            else:
+                logger.warn(
+                    f"Handler:{handler.subject_filter_regex}  Count:{handle_count}"
+                )
 
     vpd.details.extend(details)
 
