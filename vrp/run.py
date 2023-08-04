@@ -24,6 +24,7 @@ from vrp.excel.sink import FileSink, check_db_settings
 import pyexcel
 from vrp.base import ENV_FILE_NAME, ENV_PROCESS_TIME, ENV_DB_SINK, ENV_DEBUG
 from vrp import __version__
+import time
 
 
 def current_dir_files():
@@ -51,6 +52,7 @@ def main():
         "-c", "--config", default="config.json", type=str, help="指定配置文件"
     )
     parser.add_argument("--connection_url", default="", type=str, help="指定目标数据库的链接字符串")
+    parser.add_argument("--nofile", action="store_true", default=False, help="不生成结果文件。")
     parser.add_argument(
         "--debug", action="store_true", default=False, help="启用debug模式，会输出更多信息。"
     )
@@ -91,11 +93,13 @@ def main():
                     ENV_DEBUG: args.debug,
                 },
             )
-
-            file_sink.save(vpd, file_name=file, debug=args.debug)
+            if not args.nofile:
+                file_sink.save(vpd, file_name=file, debug=args.debug)
             if db_sink is not None:
                 db_sink.save(vpd)
 
 
 if __name__ == "__main__":
+    start_time = time.time()
     main()
+    logger.info(f"程序处理完成，共耗时{round(time.time()-start_time,3)}秒。")
