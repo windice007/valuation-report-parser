@@ -20,7 +20,7 @@ import os
 import glob
 import argparse
 from vrp.base.logger import logger
-from vrp.excel.sink import FileSink, check_db_settings
+from vrp.excel.sink import MultiSink
 import pyexcel
 from vrp.base import ENV_FILE_NAME, ENV_PROCESS_TIME, ENV_DB_SINK, ENV_DEBUG
 from vrp import __version__
@@ -30,6 +30,28 @@ import time
 def current_dir_files():
     result = glob.glob("*.xls") + glob.glob("*.xlsx")
     return list(filter(lambda x: not x.startswith("~$"), result))
+
+
+def load_config_file(args):
+    with open(args.config, "r", encoding="utf-8") as f:
+        config: ExcelConfig = json.load(f, object_hook=obj_json_hook)
+    return config
+
+
+def process_file(file, config, args, sink: MultiSink):
+    logger.info(f"开始处理估值文件：{file}")
+    sheet = pyexcel.get_sheet(file_name=file, sheet_name=config.sheet_name)
+    vpd = process(
+        sheet,
+        config,
+        {
+            ENV_FILE_NAME: file,
+            ENV_PROCESS_TIME: datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            ENV_DB_SINK: sink.db_sink,
+            ENV_DEBUG: args.debug,
+        },
+    )
+    sink.save(vpd)
 
 
 def main():
@@ -69,34 +91,17 @@ def main():
     logger.info(f"{parser.description} {__version__}")
 
     logger.info(f"工作目录为：{os.path.abspath(args.dir)}")
-    db_sink = check_db_settings(args)
-    file_sink = FileSink()
 
-    with open(args.config, "r", encoding="utf-8") as f:
-        config: ExcelConfig = json.load(f, object_hook=obj_json_hook)
+    sink = MultiSink(args)
+    config: ExcelConfig = load_config_file(args)
 
-        files = current_dir_files()
+    files = current_dir_files()
 
-        if len(files) == 0:
-            print("指定工作目录没有找到估值文件(*.xls|*.xlsx)")
+    if len(files) == 0:
+        print("指定工作目录没有找到估值文件(*.xls|*.xlsx)")
 
-        for file in current_dir_files():
-            logger.info(f"开始处理估值文件：{file}")
-            sheet = pyexcel.get_sheet(file_name=file, sheet_name=config.sheet_name)
-            vpd = process(
-                sheet,
-                config,
-                {
-                    ENV_FILE_NAME: file,
-                    ENV_PROCESS_TIME: datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                    ENV_DB_SINK: db_sink,
-                    ENV_DEBUG: args.debug,
-                },
-            )
-            if not args.nofile:
-                file_sink.save(vpd, file_name=file, debug=args.debug)
-            if db_sink is not None:
-                db_sink.save(vpd)
+    for file in current_dir_files():
+        process_file(file, config, args, sink)
 
 
 if __name__ == "__main__":

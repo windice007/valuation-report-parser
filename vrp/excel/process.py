@@ -3,6 +3,7 @@ import re
 from vrp.base import (
     DATASOUCE,
     ENV_DEBUG,
+    ENV_FILE_NAME,
     TABLE_NAME,
     CaseDict,
     ValuationReportData,
@@ -296,7 +297,7 @@ def process_excel_file_data(
         context.subject_row_map[code] = i
         context.subject_row_map[str(code)] = i
 
-    vpd = ValuationReportData()
+    vpd = ValuationReportData(env[ENV_FILE_NAME])
     process_positions(context, vpd)
     process_product(context, vpd)
 

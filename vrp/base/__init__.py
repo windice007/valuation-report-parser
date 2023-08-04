@@ -1,10 +1,9 @@
-
-
 from typing import Any
 
 
 class ValuationReportData:
-    def __init__(self) -> None:
+    def __init__(self, file) -> None:
+        self.file = file
         self.details: list[CaseDict] = []
         self.product: CaseDict = None
 

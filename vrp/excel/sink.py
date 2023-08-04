@@ -10,7 +10,7 @@ from vrp.base import TABLE_NAME, ValuationReportData
 
 
 class Sink(object):
-    def save(self, vpd: ValuationReportData, **keyargs):
+    def save(self, vpd: ValuationReportData):
         pass
 
 
@@ -25,8 +25,8 @@ def obj_json_default(obj):
 
 
 class FileSink(Sink):
-    def save(self, vpd: ValuationReportData, **keyargs):
-        file = keyargs["file_name"]
+    def save(self, vpd: ValuationReportData):
+        file = vpd.file
         with open(f"{file}.json", "w", encoding="utf-8") as writer:
             json.dump(
                 {"positions": vpd.details, "product": vpd.product},
@@ -63,7 +63,7 @@ class DbSink(Sink):
             exp = exp.where(table.c[key] == record[key])
         return exp
 
-    def save(self, vpd: ValuationReportData, **keyargs):
+    def save(self, vpd: ValuationReportData):
         if self.engine is None:
             return
         with self.engine.begin() as con:
@@ -113,3 +113,18 @@ def check_db_settings(args: object) -> DbSink | None:
         return DbSink(db_url)
     else:
         logger.warn(f"目标数据库配置未找到，请检查参数--connection_url 或者 settings.ini")
+
+
+class MultiSink(Sink):
+    def __init__(self, args) -> None:
+        super().__init__()
+        self.db_sink = check_db_settings(args)
+        self.file_sink = None
+        if not args.nofile:
+            self.file_sink = FileSink()
+
+    def save(self, vpd: ValuationReportData):
+        if self.db_sink:
+            self.db_sink.save(vpd)
+        if self.file_sink:
+            self.file_sink.save(vpd)
