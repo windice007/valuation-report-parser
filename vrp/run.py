@@ -1,12 +1,11 @@
 """
 valuation report parser
 """
-from datetime import datetime
 import json
 import logging
 from vrp.excel.define import ExcelConfig
 
-from vrp.excel.process import process_excel_file_data as process
+from vrp.excel.process import process_excel_file
 from vrp.excel.utils import obj_json_hook
 
 # hidden import
@@ -21,8 +20,6 @@ import glob
 import argparse
 from vrp.base.logger import logger
 from vrp.excel.sink import MultiSink
-import pyexcel
-from vrp.base import ENV_FILE_NAME, ENV_PROCESS_TIME, ENV_DB_SINK, ENV_DEBUG
 from vrp import __version__
 import time
 
@@ -36,22 +33,6 @@ def load_config_file(args):
     with open(args.config, "r", encoding="utf-8") as f:
         config: ExcelConfig = json.load(f, object_hook=obj_json_hook)
     return config
-
-
-def process_file(file, config, args, sink: MultiSink):
-    logger.info(f"开始处理估值文件：{file}")
-    sheet = pyexcel.get_sheet(file_name=file, sheet_name=config.sheet_name)
-    vpd = process(
-        sheet,
-        config,
-        {
-            ENV_FILE_NAME: file,
-            ENV_PROCESS_TIME: datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            ENV_DB_SINK: sink.db_sink,
-            ENV_DEBUG: args.debug,
-        },
-    )
-    sink.save(vpd)
 
 
 def main():
@@ -101,7 +82,7 @@ def main():
         print("指定工作目录没有找到估值文件(*.xls|*.xlsx)")
 
     for file in current_dir_files():
-        process_file(file, config, args, sink)
+        process_excel_file(file, config, args, sink)
 
 
 if __name__ == "__main__":

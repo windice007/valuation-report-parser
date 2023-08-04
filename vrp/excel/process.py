@@ -2,22 +2,22 @@ from datetime import datetime
 import re
 from vrp.base import (
     DATASOUCE,
-    ENV_DEBUG,
     ENV_FILE_NAME,
+    ENV_PROCESS_TIME,
     TABLE_NAME,
     CaseDict,
     ValuationReportData,
-    ENV_DB_SINK,
 )
 from vrp.excel.define import DataCell, ExcelConfig, PositionDefine
 from pyexcel.sheet import Sheet
 from vrp.base.utils import excel_column_index, is_position_column_str, is_position_str
-from vrp.excel.sink import DbSink
+from vrp.excel.sink import DbSink, MultiSink
 from vrp.excel.utils import Dict
 from vrp.base.logger import logger
 from decimal import Decimal
 from sqlalchemy import Table, Numeric
 from dateutil.parser import parse as parse_date
+import pyexcel
 
 
 class ProcessContext:
@@ -30,13 +30,14 @@ class ProcessContext:
         self.sheet = sheet
         self.config = config
         self.subject_column = excel_column_index(config.subject_code_column)
-        self.env = {}
+        self.env = None
+        self.sink: MultiSink = None
         self.current_row = -1
         self.current_model = {}
-        self.is_debug = False
+        self.is_debug: bool = False
 
     def is_oracle(self) -> bool:
-        db_sink: DbSink = self.env[ENV_DB_SINK]
+        db_sink: DbSink = self.sink.db_sink
         return db_sink.db_type == "oracle"
 
 
@@ -208,7 +209,7 @@ class TableProxy(object):
 
 
 def get_table_schema(context: ProcessContext, table_name: str):
-    db_sink: DbSink = context.env[ENV_DB_SINK]
+    db_sink: DbSink = context.sink.db_sink
     return TableProxy(db_sink.get_table(table_name)) if db_sink is not None else None
 
 
@@ -283,12 +284,17 @@ def handle_value(context: ProcessContext, define: DataCell | str | int | float):
     return capture_data(context, define, context.current_row)
 
 
-def process_excel_file_data(
-    sheet: Sheet, config: ExcelConfig, env: dict
-) -> ValuationReportData:
+def process_excel_file(file, config, args, sink: MultiSink):
+    logger.info(f"开始处理估值文件：{file}")
+    sheet = pyexcel.get_sheet(file_name=file, sheet_name=config.sheet_name)
+
     context = ProcessContext(sheet, config)
-    context.env.update(env)
-    context.is_debug = env.get(ENV_DEBUG, False)
+    context.is_debug = args.debug
+    context.sink = sink
+    context.env = {
+        ENV_FILE_NAME: file,
+        ENV_PROCESS_TIME: datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+    }
 
     for i in range(len(sheet)):
         code = sheet.cell_value(i, context.subject_column)
@@ -297,8 +303,8 @@ def process_excel_file_data(
         context.subject_row_map[code] = i
         context.subject_row_map[str(code)] = i
 
-    vpd = ValuationReportData(env[ENV_FILE_NAME])
+    vpd = ValuationReportData(file)
     process_positions(context, vpd)
     process_product(context, vpd)
 
-    return vpd
+    sink.save(vpd)
