@@ -73,8 +73,10 @@ def main():
 
     logger.info(f"工作目录为：{os.path.abspath(args.dir)}")
 
-    sink = MultiSink(args)
     config: ExcelConfig = load_config_file(args)
+    logger.info(f"加载配置文件：{os.path.abspath(args.config)}")
+
+    sink = MultiSink(args)
 
     files = current_dir_files()
 
