@@ -81,12 +81,8 @@ def main():
     for file in current_dir_files():
         process_excel_file(file, config, result)
 
-    records = []
-
-    for k, v in result.items():
-        records.append({"code": k, "name": v})
-
-    pyexcel.save_as(records=records, dest_file_name="code.xlsx")
+    records = list(result.values())
+    pyexcel.save_as(records=records, dest_file_name="../code.xlsx")
 
 
 def process_excel_file(file, config: ExcelConfig, result: dict):
@@ -100,7 +96,12 @@ def process_excel_file(file, config: ExcelConfig, result: dict):
         name = sheet.cell_value(i, excel_column_index("B"))
 
         if re.fullmatch("\\d{4,}", code):
-            result[code] = name
+            result[code] = {
+                "code": code,
+                "name": name,
+                "file": file,
+                "is": len(code) == 14,
+            }
 
 
 if __name__ == "__main__":
