@@ -230,8 +230,6 @@ def append_details(context: ProcessContext, details: list, model: dict):
         target.update(model)
         if context.is_debug:
             target[DATASOUCE].extend(model[DATASOUCE])
-    else:
-        details.append(model)
 
 
 def process_data(context: ProcessContext, data: Dict):
