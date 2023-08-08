@@ -79,9 +79,6 @@ def capture_data(context: ProcessContext, cell: DataCell, row: int = None) -> st
             logger.warn(f"未捕获到指定字段：[{cell_value}]@[{cell.capture_regex}]")
             cell_value = None
 
-    if isinstance(cell.mapping, dict) and cell_value in cell.mapping:
-        cell_value = cell.mapping.get(cell_value)
-
     if cell.type == "number" and isinstance(cell_value, str):
         cell_value = convert_str_to_decimal(cell_value)
     elif cell.type == "str" and not isinstance(cell_value, str):
@@ -111,10 +108,10 @@ def convert_str_to_date(v: str) -> datetime:
     return parse_date(v)
 
 
-def custom_eval(formula: str, local: dict):
+def custom_eval(formula: str, globals: dict, local: dict):
     if isinstance(local, dict):
-        return eval(formula, None, local)
-    return eval(formula, None, local.__dict__)
+        return eval(formula, globals, local)
+    return eval(formula, globals, local.__dict__)
 
 
 def process_positions(context: ProcessContext, vpd: ValuationReportData):
@@ -269,6 +266,15 @@ def process_product(context: ProcessContext, vpd: ValuationReportData):
     vpd.product = context.current_model
 
 
+def handle_mapping(context: ProcessContext, cell: DataCell, cell_value):
+    if isinstance(cell.mapping, Dict):
+        if cell_value in cell.mapping:
+            cell_value = getattr(cell.mapping, cell_value)
+        elif "_" in cell.mapping:
+            cell_value = getattr(cell.mapping, "_")
+    return cell_value
+
+
 def handle_value(context: ProcessContext, define: DataCell | str | int | float):
     if isinstance(define, str):
         if define in context.env:
@@ -278,10 +284,13 @@ def handle_value(context: ProcessContext, define: DataCell | str | int | float):
     if isinstance(define, int) or isinstance(define, float):
         return define
 
-    if define.formula is not None:
-        return custom_eval(define.formula, context.current_model)
+    cell_value = capture_data(context, define, context.current_row)
 
-    return capture_data(context, define, context.current_row)
+    if define.formula is not None:
+        globals = {"VALUE": cell_value}
+        cell_value = custom_eval(define.formula, globals, context.current_model)
+
+    return handle_mapping(context, define, cell_value)
 
 
 def process_excel_file(file, config, args, sink: MultiSink):

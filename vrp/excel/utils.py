@@ -16,6 +16,9 @@ class Dict:
     def __str__(self) -> str:
         return str(self.data)
 
+    def __contains__(self, element) -> bool:
+        return element in self.data
+
 
 def obj_json_hook(dic: dict):
     return Dict(dic)
