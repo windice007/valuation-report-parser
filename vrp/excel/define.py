@@ -7,6 +7,7 @@ class DataCell:
         self.capture_regex: str = regex
         self.subject_code: str = None
         self.mapping: dict = None
+        self.mapping_rule: Literal["contains", "equals"] = "equals"
         self.formula: str = None
         self.type: Literal["number", "str", None] = None
 

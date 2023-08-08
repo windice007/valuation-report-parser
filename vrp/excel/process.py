@@ -272,8 +272,12 @@ def process_product(context: ProcessContext, vpd: ValuationReportData):
     vpd.product = context.current_model
 
 
-def handle_mapping(context: ProcessContext, cell: DataCell, cell_value):
+def handle_mapping(context: ProcessContext, cell: DataCell, cell_value: str):
     if isinstance(cell.mapping, Dict):
+        if cell.mapping_rule == "contains":
+            for k, v in cell.mapping:
+                if k in cell_value:
+                    return v
         if cell_value in cell.mapping:
             cell_value = getattr(cell.mapping, cell_value)
         elif "_" in cell.mapping:
