@@ -224,12 +224,10 @@ def append_details(context: ProcessContext, details: list, model: dict):
         return
 
     keys = table.keys()
-    target = next((x for x in details if is_same_position(x, model, keys)), None)
+    target: dict = next((x for x in details if is_same_position(x, model, keys)), None)
 
     if target:
-        for k, v in model.items():
-            if k not in target:
-                target[k] = v
+        target.update(model)
         if context.is_debug:
             target[DATASOUCE].extend(model[DATASOUCE])
     else:
