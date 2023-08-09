@@ -320,6 +320,8 @@ def handle_value(context: ProcessContext, define: DataCell | str | int | float):
         globals.update(context.env)
         cell_value = custom_eval(define.formula, globals, context.current_model)
 
+    logger.debug(f"数据处理结果(mapping前)：{cell_value}")
+
     return handle_mapping(context, define, cell_value)
 
 
