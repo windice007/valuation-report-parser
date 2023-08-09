@@ -133,8 +133,9 @@ def handle_position(
     if not isinstance(pos.groups, list):
         logger.warn(f"没有有效的持仓定义:{pos.table}")
         return
-    details = []
+
     for group in pos.groups:
+        details = []
         if not isinstance(group.handlers, list):
             logger.warn(f"没有有效的处理配置:{pos.table}")
             continue
@@ -169,8 +170,7 @@ def handle_position(
                 )
 
             handler_index = handler_index + 1
-
-    vpd.details.extend(details)
+        vpd.details.extend(details)
 
 
 def is_same_position(m1: dict, m2: dict, keys: list[str]):
