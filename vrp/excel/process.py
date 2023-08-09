@@ -8,7 +8,7 @@ from vrp.base import (
     CaseDict,
     ValuationReportData,
 )
-from vrp.excel.define import DataCell, ExcelConfig, PositionDefine
+from vrp.excel.define import DataCell, ExcelConfig, HandlerDefine, PositionDefine
 from pyexcel.sheet import Sheet
 from vrp.base.utils import excel_column_index, is_position_column_str, is_position_str
 from vrp.excel.sink import DbSink, MultiSink
@@ -30,7 +30,7 @@ class ProcessContext:
         self.sheet = sheet
         self.config = config
         self.subject_column = excel_column_index(config.subject_code_column)
-        self.env = None
+        self.env: dict = None
         self.sink: MultiSink = None
         self.current_row = -1
         self.current_model = {}
@@ -157,7 +157,7 @@ def handle_position(
                     if handler_index == 0:
                         details.append(context.current_model)
                     else:
-                        append_details(context, details, context.current_model)
+                        merge_details(context, details, context.current_model, handler)
                     handle_count = handle_count + 1
             if handle_count > 0:
                 logger.info(
@@ -216,18 +216,23 @@ def get_table_schema(context: ProcessContext, table_name: str):
     return TableProxy(db_sink.get_table(table_name)) if db_sink is not None else None
 
 
-def append_details(context: ProcessContext, details: list, model: dict):
-    table: TableProxy = get_table_schema(context, model[TABLE_NAME])
+def merge_details(
+    context: ProcessContext, details: list, model: Dict, handler: HandlerDefine
+):
+    keys = handler.merge_keys
+    if keys is None or len(keys) == 0:
+        table: TableProxy = get_table_schema(context, model[TABLE_NAME])
 
-    if table is None:
-        details.append(model)
-        return
+        if table is None:
+            details.append(model)
+            return
 
-    keys = table.keys()
+        keys = table.keys()
     target: dict = next((x for x in details if is_same_position(x, model, keys)), None)
 
     if target:
-        target.update(model)
+        for k, _ in handler.values:
+            target[k] = model[k]
         if context.is_debug:
             target[DATASOUCE].extend(model[DATASOUCE])
 
@@ -281,6 +286,13 @@ def handle_mapping(context: ProcessContext, cell: DataCell, cell_value: str):
     return cell_value
 
 
+def safe_float(v):
+    try:
+        return float(v)
+    except:
+        return 0
+
+
 def handle_value(context: ProcessContext, define: DataCell | str | int | float):
     if isinstance(define, str):
         if define in context.env:
@@ -293,7 +305,8 @@ def handle_value(context: ProcessContext, define: DataCell | str | int | float):
     cell_value = capture_data(context, define, context.current_row)
 
     if define.formula is not None:
-        globals = {"VALUE": cell_value}
+        globals = {"VALUE": cell_value, "float": safe_float}
+        globals.update(context.env)
         cell_value = custom_eval(define.formula, globals, context.current_model)
 
     return handle_mapping(context, define, cell_value)

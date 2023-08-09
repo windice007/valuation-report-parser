@@ -12,10 +12,10 @@ class DataCell:
         self.type: Literal["number", "str", None] = None
 
 
-class HandlerDefine:
-    def __init__(self) -> None:
-        self.subject_filter_regex: str = None
-        self.values: dict = {}
+class HandlerDefine(Protocol):
+    subject_filter_regex: str
+    merge_keys: List[str]
+    values: dict
 
 
 class GroupDefine:
