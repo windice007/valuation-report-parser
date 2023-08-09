@@ -288,9 +288,9 @@ def handle_mapping(context: ProcessContext, cell: DataCell, cell_value: str):
 
 def safe_float(v):
     try:
-        return float(v)
+        return Decimal(v)
     except:
-        return 0
+        return Decimal(0)
 
 
 def handle_value(context: ProcessContext, define: DataCell | str | int | float):
@@ -305,7 +305,7 @@ def handle_value(context: ProcessContext, define: DataCell | str | int | float):
     cell_value = capture_data(context, define, context.current_row)
 
     if define.formula is not None:
-        globals = {"VALUE": cell_value, "float": safe_float}
+        globals = {"VALUE": cell_value, "Decimal": safe_float}
         globals.update(context.env)
         cell_value = custom_eval(define.formula, globals, context.current_model)
 
