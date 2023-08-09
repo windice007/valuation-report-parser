@@ -1,15 +1,14 @@
 from typing import List, Literal, Protocol
 
 
-class DataCell:
-    def __init__(self, address=None, regex=None):
-        self.address: str = address
-        self.capture_regex: str = regex
-        self.subject_code: str = None
-        self.mapping: dict = None
-        self.mapping_rule: Literal["contains", "equals"] = "equals"
-        self.formula: str = None
-        self.type: Literal["number", "str", None] = None
+class DataCell(Protocol):
+    address: str
+    capture_regex: str
+    subject_code: str
+    mapping: dict
+    mapping_rule: Literal["contains", "equals", "regex", None]
+    formula: str
+    type: Literal["number", "str", None]
 
 
 class HandlerDefine(Protocol):

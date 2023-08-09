@@ -273,16 +273,27 @@ def process_product(context: ProcessContext, vpd: ValuationReportData):
     vpd.product = context.current_model
 
 
+def is_valid_mapping_key(k: str):
+    return k != "" and k != DEFAULT_KEY
+
+
+DEFAULT_KEY: str = "$_"
+
+
 def handle_mapping(context: ProcessContext, cell: DataCell, cell_value: str):
     if isinstance(cell.mapping, Dict):
         if cell.mapping_rule == "contains":
             for k, v in cell.mapping:
-                if k in cell_value:
+                if is_valid_mapping_key(k) and k in cell_value:
+                    return v
+        if cell.mapping_rule == "regex":
+            for k, v in cell.mapping:
+                if is_valid_mapping_key(k) and re.match(k, cell_value):
                     return v
         if cell_value in cell.mapping:
             cell_value = getattr(cell.mapping, cell_value)
-        elif "_" in cell.mapping:
-            cell_value = getattr(cell.mapping, "_")
+        elif DEFAULT_KEY in cell.mapping:
+            cell_value = getattr(cell.mapping, DEFAULT_KEY)
     return cell_value
 
 
