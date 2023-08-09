@@ -348,4 +348,7 @@ def process_excel_file(file, config, args, sink: MultiSink):
     process_positions(context, vpd)
     process_product(context, vpd)
 
+    logger.info(
+        f"估值文件处理完成，持仓记录{len(vpd.details)}条，产品记录{0 if vpd.product is None else 1}条。"
+    )
     sink.save(vpd)
