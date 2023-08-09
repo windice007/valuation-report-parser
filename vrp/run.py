@@ -3,6 +3,7 @@ valuation report parser
 """
 import json
 import logging
+from vrp.base.utils import search_app_file
 from vrp.excel.define import ExcelConfig
 
 from vrp.excel.process import process_excel_file
@@ -30,7 +31,17 @@ def current_dir_files():
 
 
 def load_config_file(args):
-    with open(args.config, "r", encoding="utf-8") as f:
+    if os.path.isabs(args.config):
+        file = args.config
+    else:
+        file = search_app_file(args.config)
+
+    if file is None:
+        raise FileNotFoundError(args.config)
+
+    logger.info(f"加载配置文件：{file}")
+
+    with open(file, "r", encoding="utf-8") as f:
         config: ExcelConfig = json.load(f, object_hook=obj_json_hook)
     return config
 
@@ -45,8 +56,8 @@ def main():
         help="display app version.",
     )
     parser.add_argument(
-        "-d",
-        "--dir",
+        "dir",
+        nargs="?",
         default=".",
         type=str,
         help="指定工作目录，程序会在工作目录中检索可用的估值表文件。如果不设定，默认为当前工作目录。",
@@ -67,15 +78,13 @@ def main():
     else:
         logger.setLevel(logging.INFO)
 
-    os.chdir(args.dir)
-
     logger.info(f"{parser.description} {__version__}")
 
     logger.info(f"工作目录为：{os.path.abspath(args.dir)}")
 
-    config: ExcelConfig = load_config_file(args)
-    logger.info(f"加载配置文件：{os.path.abspath(args.config)}")
+    os.chdir(args.dir)
 
+    config: ExcelConfig = load_config_file(args)
     sink = MultiSink(args)
 
     files = current_dir_files()

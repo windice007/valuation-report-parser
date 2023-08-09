@@ -2,11 +2,10 @@ from configparser import RawConfigParser
 from datetime import datetime
 import decimal
 import json
-import os
-import sys
 from vrp.base.logger import logger
 from sqlalchemy import Table, create_engine, MetaData
 from vrp.base import TABLE_NAME, ValuationReportData
+from vrp.base.utils import search_app_file
 
 
 class Sink(object):
@@ -84,22 +83,13 @@ class DbSink(Sink):
         logger.info(f"估值数据写入数据库完成")
 
 
-def search_settings_file() -> str:
-    p1 = os.path.join(os.getcwd(), "settings.ini")
-    p2 = os.path.join(os.path.dirname(sys.executable), "settings.ini")
-    if os.path.exists(p1):
-        return p1
-    if os.path.exists(p2):
-        return p2
-    return None
-
-
 def get_db_connection_url(args: object):
     if args.connection_url != "":
         return args.connection_url
     cp = RawConfigParser()
-    settings_file = search_settings_file()
+    settings_file = search_app_file("settings.ini")
     if settings_file:
+        logger.info(f"加载配置文件：{settings_file}")
         cp.read(settings_file)
         if cp.has_option("database", "connection_url"):
             return cp.get("database", "connection_url")

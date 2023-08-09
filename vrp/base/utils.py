@@ -1,6 +1,6 @@
-
-
+import os
 import re
+import sys
 
 
 _INDICES = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -35,4 +35,16 @@ def is_position_str(pos: str):
 
 
 def is_position_column_str(pos: str):
-    return (isinstance(pos, str) and re.match("^[A-Za-z]+$", pos)) is not None and len(pos) < 4
+    return (isinstance(pos, str) and re.match("^[A-Za-z]+$", pos)) is not None and len(
+        pos
+    ) < 4
+
+
+def search_app_file(file_name) -> str:
+    p1 = os.path.join(os.getcwd(), file_name)
+    p2 = os.path.join(os.path.dirname(sys.executable), file_name)
+    if os.path.exists(p1):
+        return p1
+    if os.path.exists(p2):
+        return p2
+    return None
