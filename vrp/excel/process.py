@@ -22,11 +22,6 @@ import pyexcel
 
 
 class ProcessContext:
-    sheet: Sheet | None = None
-    subject_column: int | None = None
-    config: ExcelConfig | None = None
-    subject_row_map: dict = {}
-
     def __init__(self, sheet: Sheet, config: ExcelConfig) -> None:
         self.sheet = sheet
         self.config = config
@@ -36,6 +31,7 @@ class ProcessContext:
         self.current_row = -1
         self.current_model = {}
         self.is_debug: bool = False
+        self.subject_row_map: dict = {}
 
     def is_oracle(self) -> bool:
         db_sink: DbSink = self.sink.db_sink
