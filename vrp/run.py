@@ -6,7 +6,7 @@ import logging
 from vrp.base.utils import search_app_file
 from vrp.excel.define import ExcelConfig
 
-from vrp.excel.process import process_excel_file
+from vrp.excel.process import process
 from vrp.excel.utils import obj_json_hook
 
 # hidden import
@@ -21,7 +21,7 @@ import glob
 import argparse
 from vrp.base.logger import logger
 from vrp.excel.sink import MultiSink
-from vrp import __version__
+from vrp import Args, __version__
 import time
 
 
@@ -30,7 +30,7 @@ def current_dir_files():
     return list(filter(lambda x: not x.startswith("~$"), result))
 
 
-def load_config_file(args):
+def load_config_file(args: Args):
     if os.path.isabs(args.config):
         file = args.config
     else:
@@ -71,7 +71,7 @@ def main():
         "--debug", action="store_true", default=False, help="启用debug模式，会输出更多信息。"
     )
 
-    args = parser.parse_args()
+    args: Args = parser.parse_args()
 
     if args.debug:
         logger.setLevel(logging.DEBUG)
@@ -92,8 +92,7 @@ def main():
     if len(files) == 0:
         print("指定工作目录没有找到估值文件(*.xls|*.xlsx)")
 
-    for file in current_dir_files():
-        process_excel_file(file, config, args, sink)
+    process(files, config, args, sink)
 
 
 if __name__ == "__main__":

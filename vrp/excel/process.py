@@ -1,5 +1,6 @@
 from datetime import datetime
 import re
+from vrp import Args
 from vrp.base import (
     DATASOUCE,
     ENV_FILE_NAME,
@@ -325,7 +326,12 @@ def handle_value(context: ProcessContext, define: DataCell | str | int | float):
     return handle_mapping(context, define, cell_value)
 
 
-def process_excel_file(file, config, args, sink: MultiSink):
+def process(files: list[str], config: ExcelConfig, args: Args, sink: MultiSink):
+    for file in files:
+        process_excel_file(file, config, args, sink)
+
+
+def process_excel_file(file: str, config: ExcelConfig, args: Args, sink: MultiSink):
     logger.info(f"开始处理估值文件：{file}")
     sheet = pyexcel.get_sheet(file_name=file, sheet_name=config.sheet_name)
 
