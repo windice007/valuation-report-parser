@@ -302,6 +302,9 @@ def safe_float(v):
 
 
 def handle_value(context: ProcessContext, define: DataCell | str | int | float):
+    if define is None:
+        return None
+
     if isinstance(define, str):
         if define in context.env:
             return context.env.get(define)
