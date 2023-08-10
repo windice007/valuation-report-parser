@@ -48,6 +48,7 @@ def load_config_file(args: Args):
 
 
 def main():
+    app_start_time = time.time()
     parser = argparse.ArgumentParser(description="估值表解析程序")
     parser.add_argument(
         "-v",
@@ -104,9 +105,8 @@ def main():
             entry_process(files, config, args, sink)
         else:
             logger.error(f"处理程序入口无法使用：{args.entry}")
+    logger.info(f"程序处理完成，共耗时{round(time.time()-app_start_time,3)}秒。")
 
 
 if __name__ == "__main__":
-    start_time = time.time()
     main()
-    logger.info(f"程序处理完成，共耗时{round(time.time()-start_time,3)}秒。")
