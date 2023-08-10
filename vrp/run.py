@@ -23,6 +23,7 @@ from vrp.base.logger import logger
 from vrp.excel.sink import MultiSink
 from vrp import Args, __version__
 import time
+import importlib
 
 
 def current_dir_files():
@@ -70,6 +71,7 @@ def main():
     parser.add_argument(
         "--debug", action="store_true", default=False, help="启用debug模式，会输出更多信息。"
     )
+    parser.add_argument("--entry", default=None, type=str, help="指定处理程序入口。")
 
     args: Args = parser.parse_args()
 
@@ -92,7 +94,16 @@ def main():
     if len(files) == 0:
         print("指定工作目录没有找到估值文件(*.xls|*.xlsx)")
 
-    process(files, config, args, sink)
+    if args.entry is None:
+        process(files, config, args, sink)
+    else:
+        logger.info(f"处理程序入口为：{args.entry}")
+        m = importlib.import_module(f"vrp.entry.{args.entry}")
+        entry_process = getattr(m, "process")
+        if entry_process and callable(entry_process):
+            entry_process(files, config, args, sink)
+        else:
+            logger.error(f"处理程序入口无法使用：{args.entry}")
 
 
 if __name__ == "__main__":

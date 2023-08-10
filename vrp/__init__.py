@@ -13,3 +13,4 @@ class Args(Protocol):
     nofile: bool
     config: str
     connection_url: str
+    entry: str | None
