@@ -31,8 +31,18 @@ def fetch_positions(env: Env, product_code: str):
     return result
 
 
-def build_trade(p1, p2, date):
-    ...
+def build_trade(p1: VALUATIONPORTPOSDTL, p2: VALUATIONPORTPOSDTL, date):
+    if p1 is None:
+        return f"{date} buy {p2.SECU_CODE} {p2.HLD_QTY}"
+    elif p2 is None:
+        return f"{date} sell {p1.SECU_CODE} {p1.HLD_QTY}"
+    else:
+        qty = p1.HLD_QTY - p2.HLD_QTY
+        if qty > 0:
+            return f"{date} sell {p1.SECU_CODE} {qty}"
+        elif qty < 0:
+            return f"{date} buy {p1.SECU_CODE} {-qty}"
+    return None
 
 
 def pos_compare(
@@ -43,14 +53,21 @@ def pos_compare(
     result = []
     for p1 in start:
         p2 = next((x for x in stop if x.SECU_CODE == p1.SECU_CODE), None)
-        result.append(build_trade(p1, p2, date))
+        trade = build_trade(p1, p2, date)
+        if trade:
+            result.append(trade)
 
     for p2 in stop:
         p1 = next((x for x in start if x.SECU_CODE == p1.SECU_CODE), None)
         if p1 is None:
-            result.append(build_trade(p1, p2, date))
-
+            trade = build_trade(p1, p2, date)
+            if trade:
+                result.append(trade)
     return result
+
+
+def insert_trades(results: list):
+    logger.info(results)
 
 
 def handle_product(env: Env, product_code: str):
@@ -67,11 +84,14 @@ def handle_product(env: Env, product_code: str):
 
     dates = list(pos_group.keys())
 
+    results = []
     for i in range(len(dates) - 1):
         start = dates[i]
         stop = dates[i + 1]
         logger.info(f"处理{start}的持仓到{stop}的持仓。")
-        pos_compare(pos_group.get(start), pos_group.get(stop), stop)
+        results.extend(pos_compare(pos_group.get(start), pos_group.get(stop), stop))
+
+    insert_trades(results)
 
 
 def process(files: list[str], config: ExcelConfig, args: Args, sink: MultiSink):
