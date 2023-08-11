@@ -2,6 +2,8 @@ from configparser import RawConfigParser
 from datetime import datetime
 import decimal
 import json
+import os
+from vrp import Args
 from vrp.base.logger import logger
 from sqlalchemy import Table, create_engine, MetaData
 from vrp.base import TABLE_NAME, ValuationReportData
@@ -83,20 +85,20 @@ class DbSink(Sink):
         logger.info(f"估值数据写入数据库完成")
 
 
-def get_db_connection_url(args: object):
+def get_db_connection_url(args: Args):
     if args.connection_url != "":
         return args.connection_url
     cp = RawConfigParser()
-    settings_file = search_app_file("settings.ini")
+    settings_file = search_app_file("settings.ini", args.dir)
     if settings_file:
-        logger.info(f"加载配置文件：{settings_file}")
+        logger.info(f"加载配置文件：{os.path.abspath(settings_file)}")
         cp.read(settings_file)
         if cp.has_option("database", "connection_url"):
             return cp.get("database", "connection_url")
     return None
 
 
-def check_db_settings(args: object) -> DbSink | None:
+def check_db_settings(args: Args) -> DbSink | None:
     db_url = get_db_connection_url(args)
     if db_url:
         logger.info(f"目标数据库为：{db_url}")
@@ -106,7 +108,7 @@ def check_db_settings(args: object) -> DbSink | None:
 
 
 class MultiSink(Sink):
-    def __init__(self, args) -> None:
+    def __init__(self, args: Args) -> None:
         super().__init__()
         self.db_sink = check_db_settings(args)
         self.file_sink = None

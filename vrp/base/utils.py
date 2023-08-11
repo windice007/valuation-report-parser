@@ -40,11 +40,16 @@ def is_position_column_str(pos: str):
     ) < 4
 
 
-def search_app_file(file_name) -> str:
-    p1 = os.path.join(os.getcwd(), file_name)
-    p2 = os.path.join(os.path.dirname(sys.executable), file_name)
-    if os.path.exists(p1):
-        return p1
-    if os.path.exists(p2):
-        return p2
+def search_app_file(file_name, work_dir) -> str:
+    if os.path.isabs(file_name):
+        return file_name
+    p = os.path.join(work_dir, file_name)
+    if os.path.exists(p):
+        return p
+    p = os.path.join(os.getcwd(), file_name)
+    if os.path.exists(p):
+        return p
+    p = os.path.join(os.path.dirname(sys.executable), file_name)
+    if os.path.exists(p):
+        return p
     return None

@@ -26,21 +26,26 @@ import time
 import importlib
 
 
-def current_dir_files():
-    result = glob.glob("*.xls") + glob.glob("*.xlsx")
-    return list(filter(lambda x: not x.startswith("~$"), result))
+def excel_filter(file):
+    if not os.path.isfile(file):
+        return False
+    file_name: str = os.path.basename(file)
+    if file_name.startswith("~$"):
+        return False
+    return file_name.endswith(".xls") or file_name.endswith(".xlsx")
+
+
+def current_dir_files(dir):
+    result = map(lambda x: os.path.join(dir, x), os.listdir(dir))
+    return list(filter(excel_filter, result))
 
 
 def load_config_file(args: Args):
-    if os.path.isabs(args.config):
-        file = args.config
-    else:
-        file = search_app_file(args.config)
-
+    file = search_app_file(args.config, args.dir)
     if file is None:
         raise FileNotFoundError(args.config)
 
-    logger.info(f"加载配置文件：{file}")
+    logger.info(f"加载配置文件：{os.path.abspath(file)}")
 
     with open(file, "r", encoding="utf-8") as f:
         config: ExcelConfig = json.load(f, object_hook=obj_json_hook)
@@ -85,12 +90,10 @@ def main():
 
     logger.info(f"工作目录为：{os.path.abspath(args.dir)}")
 
-    os.chdir(args.dir)
-
     config: ExcelConfig = load_config_file(args)
     sink = MultiSink(args)
 
-    files = current_dir_files()
+    files = current_dir_files(args.dir)
 
     if len(files) == 0:
         print("指定工作目录没有找到估值文件(*.xls|*.xlsx)")
