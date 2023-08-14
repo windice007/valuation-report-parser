@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import select
 from sqlalchemy.engine import Engine
 from sqlalchemy.sql.expression import Select
-from vrp.model.mysql_models import VALUATIONPORTPOSDTL
+from vrp.model.mysql_models import INDICBASESTOCKPOSDTL
 import datetime
 
 
@@ -23,21 +23,21 @@ def _select(*args, **kw) -> Select:
 def fetch_positions(env: Env, product_code: str):
     with Session(env.engine) as session:
         stmt = (
-            _select(VALUATIONPORTPOSDTL)
-            .where(VALUATIONPORTPOSDTL.PRODUCT_CODE == product_code)
-            .order_by(VALUATIONPORTPOSDTL.BUSI_DATE)
+            _select(INDICBASESTOCKPOSDTL)
+            .where(INDICBASESTOCKPOSDTL.PRD_CODE == product_code)
+            .order_by(INDICBASESTOCKPOSDTL.BIZ_DATE)
         )
-        result: list[VALUATIONPORTPOSDTL] = session.execute(stmt).scalars().all()
+        result: list[INDICBASESTOCKPOSDTL] = session.execute(stmt).scalars().all()
     return result
 
 
-def build_trade(p1: VALUATIONPORTPOSDTL, p2: VALUATIONPORTPOSDTL, date):
+def build_trade(p1: INDICBASESTOCKPOSDTL, p2: INDICBASESTOCKPOSDTL, date):
     if p1 is None:
-        return f"{date} buy {p2.SECU_CODE} {p2.HLD_QTY}"
+        return f"{date} buy {p2.SECU_CODE} {p2.POS_QTY}"
     elif p2 is None:
-        return f"{date} sell {p1.SECU_CODE} {p1.HLD_QTY}"
+        return f"{date} sell {p1.SECU_CODE} {p1.POS_QTY}"
     else:
-        qty = p1.HLD_QTY - p2.HLD_QTY
+        qty = p1.POS_QTY - p2.POS_QTY
         if qty > 0:
             return f"{date} sell {p1.SECU_CODE} {qty}"
         elif qty < 0:
@@ -46,8 +46,8 @@ def build_trade(p1: VALUATIONPORTPOSDTL, p2: VALUATIONPORTPOSDTL, date):
 
 
 def pos_compare(
-    start: list[VALUATIONPORTPOSDTL],
-    stop: list[VALUATIONPORTPOSDTL],
+    start: list[INDICBASESTOCKPOSDTL],
+    stop: list[INDICBASESTOCKPOSDTL],
     date: datetime.date,
 ):
     result = []
@@ -74,12 +74,12 @@ def handle_product(env: Env, product_code: str):
     positions = fetch_positions(env, product_code)
     logger.info(f"获取产品[{product_code}]持仓：{len(positions)}条记录")
 
-    pos_group: dict[datetime.date, list[VALUATIONPORTPOSDTL]] = {}
+    pos_group: dict[datetime.date, list[INDICBASESTOCKPOSDTL]] = {}
 
     for p in positions:
-        if p.BUSI_DATE not in pos_group:
-            pos_group[p.BUSI_DATE] = []
-        array = pos_group[p.BUSI_DATE]
+        if p.BIZ_DATE not in pos_group:
+            pos_group[p.BIZ_DATE] = []
+        array = pos_group[p.BIZ_DATE]
         array.append(p)
 
     dates = list(pos_group.keys())
