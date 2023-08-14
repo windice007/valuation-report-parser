@@ -89,7 +89,7 @@ def build_trade_stock(
         t.SUB_ACCT_CODE = p.SUB_ACCT_CODE
         t.SECU_TYPE_CODE = p.SECU_TYPE_CODE
         t.TX_FEE = p.TX_FEE
-        t.TRAN_NUM = f"{date.strftime('%Y%m%d')}_{t.SYMBOL}_{t.PRD_CODE}"
+        t.TRAN_NUM = f"{date.strftime('%Y%m%d')}_{t.SECU_CODE}_{t.PRD_CODE}"
         t.INSTR_NUM = t.TRAN_NUM
         t.CREATE_TIME = p.CREATE_TIME
         t.UPDATE_TIME = p.UPDATE_TIME
@@ -138,7 +138,7 @@ def build_trade_bond(
         t.SUB_ACCT_CODE = p.SUB_ACCT_CODE
         t.SECU_TYPE_CODE = p.SECU_TYPE_CODE
         t.TX_FEE = p.TX_FEE
-        t.TRAN_NUM = f"{date.strftime('%Y%m%d')}_{t.SYMBOL}_{t.PRD_CODE}"
+        t.TRAN_NUM = f"{date.strftime('%Y%m%d')}_{t.SECU_CODE}_{t.PRD_CODE}"
         t.INSTR_NUM = t.TRAN_NUM
         t.CREATE_TIME = p.CREATE_TIME
         t.UPDATE_TIME = p.UPDATE_TIME
@@ -216,8 +216,8 @@ def handle_product(env: Env):
 
 
 def process(files: list[str], config: ExcelConfig, args: Args, sink: MultiSink):
-    # products = ["3212", "3512", "4523", "541401", "585004", "604310", "611607"]
-    products = ["3212"]
+    products = ["3212", "3512", "4523", "541401", "585004", "604310", "611607"]
+    # products = ["585004"]
     env: Env = Env()
     env.engine = sink.db_sink.engine
     for code in products:
