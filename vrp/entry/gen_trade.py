@@ -1,3 +1,5 @@
+from decimal import Decimal
+from typing import Protocol
 from vrp.excel.sink import MultiSink
 from vrp import Args
 from vrp.excel.define import ExcelConfig
@@ -8,8 +10,15 @@ from sqlalchemy.orm import Session
 from sqlalchemy import select
 from sqlalchemy.engine import Engine
 from sqlalchemy.sql.expression import Select
-from vrp.model.mysql_models import INDICBASESTOCKPOSDTL
+from vrp.model.mysql_models import INDICBASESTOCKPOSDTL, INDICBASEBONDPOSDTL
 import datetime
+
+
+class POSMODEL(Protocol):
+    BIZ_DATE: datetime.date
+    PRD_CODE: str
+    SECU_CODE: str
+    POS_QTY: Decimal
 
 
 class Env:
@@ -20,18 +29,18 @@ def _select(*args, **kw) -> Select:
     return select(*args, **kw)
 
 
-def fetch_positions(env: Env, product_code: str):
+def fetch_positions(env: Env, product_code: str, model: POSMODEL) -> list[POSMODEL]:
     with Session(env.engine) as session:
         stmt = (
-            _select(INDICBASESTOCKPOSDTL)
-            .where(INDICBASESTOCKPOSDTL.PRD_CODE == product_code)
-            .order_by(INDICBASESTOCKPOSDTL.BIZ_DATE)
+            _select(model)
+            .where(model.PRD_CODE == product_code)
+            .order_by(model.BIZ_DATE)
         )
-        result: list[INDICBASESTOCKPOSDTL] = session.execute(stmt).scalars().all()
+        result: list[POSMODEL] = session.execute(stmt).scalars().all()
     return result
 
 
-def build_trade(p1: INDICBASESTOCKPOSDTL, p2: INDICBASESTOCKPOSDTL, date):
+def build_trade(p1: POSMODEL, p2: POSMODEL, date):
     if p1 is None:
         return f"{date} buy {p2.SECU_CODE} {p2.POS_QTY}"
     elif p2 is None:
@@ -46,8 +55,8 @@ def build_trade(p1: INDICBASESTOCKPOSDTL, p2: INDICBASESTOCKPOSDTL, date):
 
 
 def pos_compare(
-    start: list[INDICBASESTOCKPOSDTL],
-    stop: list[INDICBASESTOCKPOSDTL],
+    start: list[POSMODEL],
+    stop: list[POSMODEL],
     date: datetime.date,
 ):
     result = []
@@ -70,11 +79,11 @@ def insert_trades(results: list):
     logger.info(results)
 
 
-def handle_product(env: Env, product_code: str):
-    positions = fetch_positions(env, product_code)
+def handle_product(env: Env, product_code: str, model: POSMODEL):
+    positions: list[POSMODEL] = fetch_positions(env, product_code, model)
     logger.info(f"获取产品[{product_code}]持仓：{len(positions)}条记录")
 
-    pos_group: dict[datetime.date, list[INDICBASESTOCKPOSDTL]] = {}
+    pos_group: dict[datetime.date, list[POSMODEL]] = {}
 
     for p in positions:
         if p.BIZ_DATE not in pos_group:
@@ -99,4 +108,5 @@ def process(files: list[str], config: ExcelConfig, args: Args, sink: MultiSink):
     env: Env = Env()
     env.engine = sink.db_sink.engine
     for code in products:
-        handle_product(env, code)
+        handle_product(env, code, INDICBASESTOCKPOSDTL)
+        handle_product(env, code, INDICBASEBONDPOSDTL)
