@@ -30,6 +30,7 @@ class POSMODEL(Protocol):
 class Env:
     engine: Engine
     model: POSMODEL
+    target_model: object
     trade_builder: Callable[[POSMODEL, POSMODEL, datetime.date], Any]
     product_code: str
 
@@ -174,7 +175,9 @@ def insert_trades(env: Env, results: list):
         return
     logger.info(f"共生成{count}条交易，写入数据库中...")
     with Session(env.engine) as session:
-        stmt = delete(env.model).where(env.model.PRD_CODE == env.product_code)
+        stmt = delete(env.target_model).where(
+            env.target_model.PRD_CODE == env.product_code
+        )
         session.execute(stmt)
         session.add_all(results)
         session.commit()
@@ -213,16 +216,19 @@ def handle_product(env: Env):
 
 
 def process(files: list[str], config: ExcelConfig, args: Args, sink: MultiSink):
-    products = ["3212", "3512", "4523", "541401", "585004", "604310", "611607"]
+    # products = ["3212", "3512", "4523", "541401", "585004", "604310", "611607"]
+    products = ["3212"]
     env: Env = Env()
     env.engine = sink.db_sink.engine
     for code in products:
         env.product_code = code
 
         env.model = INDICBASESTOCKPOSDTL
+        env.target_model = INDICBASETXSTOCK
         env.trade_builder = build_trade_stock
         handle_product(env)
 
         env.model = INDICBASEBONDPOSDTL
+        env.target_model = INDICBASETXBOND
         env.trade_builder = build_trade_bond
         handle_product(env)
