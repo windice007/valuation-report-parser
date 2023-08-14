@@ -1,10 +1,110 @@
 # coding: utf-8
-from sqlalchemy import Column, DECIMAL, Date, DateTime, String, text
+from sqlalchemy import Column, DECIMAL, Date, DateTime, String, TIMESTAMP, text
 from sqlalchemy.dialects.mysql import VARCHAR
 from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
 metadata = Base.metadata
+
+
+class INDICBASEBONDPOSDTL(Base):
+    __tablename__ = 'INDIC_BASE_BOND_POS_DTL'
+    __table_args__ = {'comment': '债券持仓明细表'}
+
+    BIZ_DATE = Column(Date, primary_key=True, nullable=False, comment='业务日期')
+    PRD_CODE = Column(String(50), primary_key=True, nullable=False, comment='产品代码')
+    PORT_TYPE_CODE = Column(VARCHAR(50), primary_key=True, nullable=False, comment='投资组合类型代码')
+    PORT_CODE = Column(VARCHAR(50), primary_key=True, nullable=False, comment='投资组合代码')
+    SECU_CODE = Column(String(50), primary_key=True, nullable=False, comment='证券内码')
+    INVES_CLS_CODE = Column(String(50), primary_key=True, nullable=False, comment='投资分类代码')
+    AST_UNIT_CODE = Column(String(50), comment='资产单元代码')
+    STRGY_CODE = Column(String(50), comment='策略代码')
+    SUB_ACCT_CODE = Column(String(50), comment='子账户代码')
+    ISSUR_NUM = Column(String(50), comment='发行人编码')
+    SYMBOL = Column(String(50), comment='证券代码')
+    SECU_NAME = Column(String(50), comment='证券名称')
+    SECU_TYPE_CODE = Column(String(50), comment='证券类型代码')
+    TX_MKT_CODE = Column(String(50), comment='交易市场代码')
+    INT_PAY_MODE_CODE = Column(String(50), comment='付息方式代码')
+    INT_RATE_TYPE_CODE = Column(String(50), comment='利率类型代码')
+    CUR_CODE = Column(String(50), comment='币种代码')
+    UNIT_COST = Column(DECIMAL(30, 8), server_default=text("'0.00000000'"), comment='单位成本')
+    VAL_PRC = Column(DECIMAL(30, 8), server_default=text("'0.00000000'"), comment='估值价格')
+    POS_QTY = Column(DECIMAL(30, 0), server_default=text("'0'"), comment='持仓数量')
+    LAST_DAY_POS_QTY = Column(DECIMAL(30, 0), server_default=text("'0'"), comment='昨日持仓数量')
+    ACTL_INT_RATE = Column(DECIMAL(15, 10), server_default=text("'0.0000000000'"), comment='实际利率')
+    POS_COST = Column(DECIMAL(30, 8), server_default=text("'0.00000000'"), comment='持仓成本')
+    LAST_DAY_POS_COST = Column(DECIMAL(30, 8), server_default=text("'0.00000000'"), comment='昨日持仓成本')
+    RMN_COST = Column(DECIMAL(30, 8), server_default=text("'0.00000000'"), comment='摊余成本')
+    POS_MKV = Column(DECIMAL(30, 8), server_default=text("'0.00000000'"), comment='持仓市值')
+    LAST_DAY_POS_MKV = Column(DECIMAL(30, 8), server_default=text("'0.00000000'"), comment='昨日持仓市值')
+    SHADOW_MKV = Column(DECIMAL(30, 8), server_default=text("'0.00000000'"), comment='影子市值')
+    RECVBL_INT_BAL = Column(DECIMAL(30, 8), server_default=text("'0.00000000'"), comment='应计利息余额')
+    VAL_ADD_BAL = Column(DECIMAL(30, 8), server_default=text("'0.00000000'"), comment='估值增值余额')
+    PREM_BAL = Column(DECIMAL(30, 8), server_default=text("'0.00000000'"), comment='折溢价余额')
+    ISSU_PAR = Column(DECIMAL(30, 8), server_default=text("'0.00000000'"), comment='发行面值')
+    TERM = Column(DECIMAL(30, 0), server_default=text("'0'"), comment='期限')
+    Y100_BON_INT = Column(DECIMAL(30, 8), server_default=text("'0.00000000'"), comment='百元债券利息')
+    DEVAL_PREP_AMT = Column(DECIMAL(30, 8), server_default=text("'0.00000000'"), comment='减值准备金额')
+    CURDAY_VAL_PAL = Column(DECIMAL(30, 8), server_default=text("'0.00000000'"), comment='当日估值损益')
+    CURDAY_BSIS_INCOM = Column(DECIMAL(30, 8), server_default=text("'0.00000000'"), comment='当日差价收入')
+    CURDAY_INT_INCOM = Column(DECIMAL(30, 8), server_default=text("'0.00000000'"), comment='当日利息收入')
+    POS_MKV_PORT_TOTL_AST_RAT = Column(DECIMAL(30, 8), server_default=text("'0.00000000'"), comment='持仓市值占组合总资产比例')
+    POS_MKV_PORT_AST_NAV_RAT = Column(DECIMAL(30, 8), server_default=text("'0.00000000'"), comment='持仓市值占组合资产净值比例')
+    POS_MKV_PORT_BON_MKV_RAT = Column(DECIMAL(30, 8), server_default=text("'0.00000000'"), comment='持仓市值占组合债券市值比例')
+    CREATE_TIME = Column(TIMESTAMP, server_default=text("CURRENT_TIMESTAMP"), comment='创建时间')
+    UPDATE_TIME = Column(TIMESTAMP, server_default=text("CURRENT_TIMESTAMP"), comment='更新时间')
+
+
+class INDICBASESTOCKPOSDTL(Base):
+    __tablename__ = 'INDIC_BASE_STOCK_POS_DTL'
+    __table_args__ = {'comment': '股票持仓明细表'}
+
+    BIZ_DATE = Column(Date, primary_key=True, nullable=False, comment='业务日期')
+    PRD_CODE = Column(String(50), primary_key=True, nullable=False, comment='产品代码')
+    PORT_TYPE_CODE = Column(VARCHAR(50), primary_key=True, nullable=False, comment='投资组合类型代码')
+    PORT_CODE = Column(VARCHAR(50), primary_key=True, nullable=False, comment='投资组合代码')
+    SECU_CODE = Column(String(50), primary_key=True, nullable=False, comment='证券内码')
+    LOCK_START_DATE = Column(Date, primary_key=True, nullable=False, server_default=text("'1970-01-01'"), comment='锁定开始日期')
+    LMT_CIR_TYPE_CODE = Column(String(50), primary_key=True, nullable=False, comment='受限流通类型代码')
+    INVES_CLS_CODE = Column(String(50), primary_key=True, nullable=False, comment='投资分类代码')
+    AST_UNIT_CODE = Column(String(50), comment='资产单元代码')
+    STRGY_CODE = Column(String(50), comment='策略代码')
+    SUB_ACCT_CODE = Column(String(50), comment='子账户代码')
+    LOCK_END_DATE = Column(Date, nullable=False, server_default=text("'1970-01-01'"), comment='锁定结束日期')
+    GO_PUB_DATE = Column(Date, comment='上市日期')
+    GO_PUB_STAT_CODE = Column(String(50), comment='上市状态代码')
+    GO_PUB_BRD = Column(String(50), comment='上市板块')
+    ISSUR_NUM = Column(String(50), comment='发行人编码')
+    SYMBOL = Column(String(50), comment='证券代码')
+    SECU_NAME = Column(String(50), comment='证券名称')
+    SECU_TYPE_CODE = Column(String(50), comment='证券类型代码')
+    TX_MKT_CODE = Column(String(50), comment='交易市场代码')
+    NP_ISSU_IND = Column(String(3), comment='非公开发行标识')
+    CUR_CODE = Column(VARCHAR(50), server_default=text("'CNY'"), comment='币种代码')
+    EXR = Column(DECIMAL(15, 10), server_default=text("'0.0000000000'"), comment='汇率')
+    VAL_PRC = Column(DECIMAL(30, 8), server_default=text("'0.00000000'"), comment='估值价格')
+    UNIT_COST = Column(DECIMAL(30, 8), server_default=text("'0.00000000'"), comment='单位成本')
+    POS_QTY = Column(DECIMAL(30, 0), server_default=text("'0'"), comment='持仓数量')
+    POS_COST = Column(DECIMAL(30, 8), server_default=text("'0.00000000'"), comment='持仓成本')
+    POS_MKV = Column(DECIMAL(30, 8), server_default=text("'0.00000000'"), comment='持仓市值')
+    LAST_DAY_POS_QTY = Column(DECIMAL(30, 0), server_default=text("'0'"), comment='昨日持仓数量')
+    LAST_DAY_POS_COST = Column(DECIMAL(30, 8), server_default=text("'0.00000000'"), comment='昨日持仓成本')
+    LAST_DAY_POS_MKV = Column(DECIMAL(30, 8), server_default=text("'0.00000000'"), comment='昨日持仓市值')
+    RECVBL_DV_BAL = Column(DECIMAL(30, 8), server_default=text("'0.00000000'"), comment='应收股利余额')
+    VAL_ADD_BAL = Column(DECIMAL(30, 8), server_default=text("'0.00000000'"), comment='估值增值余额')
+    CURDAY_BSIS_INCOM = Column(DECIMAL(30, 8), server_default=text("'0.00000000'"), comment='当日差价收入')
+    CURDAY_VAL_PAL = Column(DECIMAL(30, 8), server_default=text("'0.00000000'"), comment='当日估值损益')
+    CURDAY_DV_INCOM = Column(DECIMAL(30, 8), server_default=text("'0.00000000'"), comment='当日股利收入')
+    POS_MKV_PORT_TOTL_AST_RAT = Column(DECIMAL(30, 8), server_default=text("'0.00000000'"), comment='持仓市值占组合总资产比例')
+    POS_MKV_PORT_AST_NAV_RAT = Column(DECIMAL(30, 8), server_default=text("'0.00000000'"), comment='持仓市值占组合资产净值比例')
+    POS_MKV_PORT_STK_MKV_RAT = Column(DECIMAL(30, 8), server_default=text("'0.00000000'"), comment='持仓市值占组合股票市值比例')
+    STOP_DATE = Column(Date, comment='停牌日期')
+    LOCK_QTY = Column(DECIMAL(30, 0), server_default=text("'0'"), comment='锁定数量')
+    CONVT_RATIO = Column(DECIMAL(30, 8), server_default=text("'0.00000000'"), comment='折算比例')
+    REMN_LMT_SELL_PRD = Column(DECIMAL(30, 0), server_default=text("'0'"), comment='剩余限售期')
+    CREATE_TIME = Column(TIMESTAMP, server_default=text("CURRENT_TIMESTAMP"), comment='创建时间')
+    UPDATE_TIME = Column(TIMESTAMP, server_default=text("CURRENT_TIMESTAMP"), comment='更新时间')
 
 
 class VALUATIONPORTIND(Base):

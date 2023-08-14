@@ -1,4 +1,4 @@
 # 估值表导入原型
 
 # 代码生成
-sqlacodegen mysql+pymysql://qtrw_platodev:QTdev_2021@10.10.23.102:3306/plato_idx --noviews --noindexes --noconstraints --nojoined --tables VALUATION_PORT_POS_DTL,VALUATION_PORT_IND > ./vrp/model/mysql_models.py
+sqlacodegen mysql+pymysql://qtrw_platodev:QTdev_2021@10.10.23.102:3306/plato_idx --noviews --noindexes --noconstraints --nojoined --tables VALUATION_PORT_POS_DTL,VALUATION_PORT_IND,INDIC_BASE_BOND_POS_DTL,INDIC_BASE_STOCK_POS_DTL > ./vrp/model/mysql_models.py
