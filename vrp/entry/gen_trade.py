@@ -7,7 +7,7 @@ from vrp.excel.define import ExcelConfig
 
 from vrp.base.logger import logger
 from sqlalchemy.orm import Session
-from sqlalchemy import select
+from sqlalchemy import select, delete
 from sqlalchemy.engine import Engine
 from sqlalchemy.sql.expression import Select
 from vrp.model.mysql_models import (
@@ -31,18 +31,19 @@ class Env:
     engine: Engine
     model: POSMODEL
     trade_builder: Callable[[POSMODEL, POSMODEL, datetime.date], Any]
+    product_code: str
 
 
 def _select(*args, **kw) -> Select:
     return select(*args, **kw)
 
 
-def fetch_positions(env: Env, product_code: str) -> list[POSMODEL]:
+def fetch_positions(env: Env) -> list[POSMODEL]:
     model = env.model
     with Session(env.engine) as session:
         stmt = (
             _select(model)
-            .where(model.PRD_CODE == product_code)
+            .where(model.PRD_CODE == env.product_code)
             .order_by(model.BIZ_DATE)
         )
         result: list[POSMODEL] = session.execute(stmt).scalars().all()
@@ -173,16 +174,18 @@ def insert_trades(env: Env, results: list):
         return
     logger.info(f"共生成{count}条交易，写入数据库中...")
     with Session(env.engine) as session:
+        stmt = delete(env.model).where(env.model.PRD_CODE == env.product_code)
+        session.execute(stmt)
         session.add_all(results)
         session.commit()
 
     logger.info(f"数据库写入完成。")
 
 
-def handle_product(env: Env, product_code: str):
-    positions: list[POSMODEL] = fetch_positions(env, product_code)
+def handle_product(env: Env):
+    positions: list[POSMODEL] = fetch_positions(env)
     logger.info(
-        f"获取产品[{product_code}][{env.model.__tablename__}]持仓：{len(positions)}条记录"
+        f"获取产品[{env.product_code}][{env.model.__tablename__}]持仓：{len(positions)}条记录"
     )
 
     pos_group: dict[datetime.date, list[POSMODEL]] = {}
@@ -210,14 +213,16 @@ def handle_product(env: Env, product_code: str):
 
 
 def process(files: list[str], config: ExcelConfig, args: Args, sink: MultiSink):
-    products = ["3212"]
+    products = ["3212", "3512", "4523", "541401", "585004", "604310", "611607"]
     env: Env = Env()
     env.engine = sink.db_sink.engine
     for code in products:
+        env.product_code = code
+
         env.model = INDICBASESTOCKPOSDTL
         env.trade_builder = build_trade_stock
-        handle_product(env, code)
+        handle_product(env)
 
         env.model = INDICBASEBONDPOSDTL
         env.trade_builder = build_trade_bond
-        handle_product(env, code)
+        handle_product(env)
