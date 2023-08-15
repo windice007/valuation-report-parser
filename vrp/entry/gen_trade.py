@@ -1,5 +1,6 @@
 from decimal import Decimal
 from typing import Any, Callable, Protocol
+from typing_extensions import Self
 from vrp.excel.sink import MultiSink
 from vrp import Args
 from vrp.excel.define import ExcelConfig
@@ -19,19 +20,15 @@ from vrp.model.mysql_models import (
 import datetime
 
 
-class POSMODEL(Protocol):
-    BIZ_DATE: datetime.date
-    PRD_CODE: str
-    SECU_CODE: str
-    POS_QTY: Decimal
-    __tablename__: str
+POSTYPE = INDICBASESTOCKPOSDTL | INDICBASEBONDPOSDTL
+TRADETYPE = INDICBASETXSTOCK | INDICBASETXBOND
 
 
 class Env:
     engine: Engine
-    model: POSMODEL
-    target_model: object
-    trade_builder: Callable[[POSMODEL, POSMODEL, datetime.date], Any]
+    model: POSTYPE
+    target_model: TRADETYPE
+    trade_builder: Callable[[Self, POSTYPE, POSTYPE, datetime.date], TRADETYPE | None]
     product_code: str
 
 
@@ -39,7 +36,7 @@ def _select(*args, **kw) -> Select:
     return select(*args, **kw)
 
 
-def fetch_positions(env: Env) -> list[POSMODEL]:
+def fetch_positions(env: Env) -> list[POSTYPE]:
     model = env.model
     with Session(env.engine) as session:
         stmt = (
@@ -47,12 +44,15 @@ def fetch_positions(env: Env) -> list[POSMODEL]:
             .where(model.PRD_CODE == env.product_code)
             .order_by(model.BIZ_DATE)
         )
-        result: list[POSMODEL] = session.execute(stmt).scalars().all()
+        result: list[POSTYPE] = session.execute(stmt).scalars().all()
     return result
 
 
-def build_trade_stock(
-    p1: INDICBASESTOCKPOSDTL, p2: INDICBASESTOCKPOSDTL, date: datetime.date
+def build_trades(
+    env: Env,
+    p1: POSTYPE,
+    p2: POSTYPE,
+    date: datetime.date,
 ):
     qty = 0
     direction = "buy"
@@ -71,8 +71,9 @@ def build_trade_stock(
         qty = abs(qty)
 
     if qty > 0:
-        p: INDICBASESTOCKPOSDTL = p1
-        t = INDICBASETXSTOCK()
+        p: POSTYPE = p1
+        t: TRADETYPE = env.target_model()
+
         t.PRD_CODE = p.PRD_CODE
         t.PORT_CODE = p.PORT_CODE
         t.AST_UNIT_CODE = p.AST_UNIT_CODE
@@ -80,11 +81,9 @@ def build_trade_stock(
         t.SYMBOL = p.SYMBOL
         t.SECU_CODE = p.SECU_CODE
         t.SECU_NAME = p.SECU_NAME
-        t.EXR = p.EXR
+        t.EXR = getattr(p, "EXR", None)
         t.TX_MKT_CODE = p.TX_MKT_CODE
         t.TRAN_QTY = qty
-        t.TRAN_PRC = p.VAL_PRC
-        t.TRAN_AMT = t.TRAN_QTY * t.TRAN_PRC
         t.CUR_CODE = p.CUR_CODE
         t.STRGY_CODE = p.STRGY_CODE
         t.SUB_ACCT_CODE = p.SUB_ACCT_CODE
@@ -99,72 +98,29 @@ def build_trade_stock(
         else:
             t.TX_TYPE_CODE = "T01.01.000.002"
 
-        return t
+        t.TRAN_PRC = p.VAL_PRC
+        t.TRAN_AMT = t.TRAN_QTY * t.TRAN_PRC
 
-
-def build_trade_bond(
-    p1: INDICBASEBONDPOSDTL, p2: INDICBASEBONDPOSDTL, date: datetime.date
-):
-    qty = 0
-    direction = "buy"
-    if p1 is None:
-        qty = p2.POS_QTY
-        direction = "buy"
-    elif p2 is None:
-        qty = p1.POS_QTY
-        direction = "sell"
-    else:
-        qty = p1.POS_QTY - p2.POS_QTY
-        if qty > 0:
-            direction = "sell"
-        elif qty < 0:
-            direction = "buy"
-
-    if qty > 0:
-        p: INDICBASEBONDPOSDTL = p1
-        t = INDICBASETXBOND()
-        t.PRD_CODE = p.PRD_CODE
-        t.PORT_CODE = p.PORT_CODE
-        t.AST_UNIT_CODE = p.AST_UNIT_CODE
-        t.TX_DATE = date
-        t.SYMBOL = p.SYMBOL
-        t.SECU_CODE = p.SECU_CODE
-        t.SECU_NAME = p.SECU_NAME
-        t.TX_MKT_CODE = p.TX_MKT_CODE
-        t.TRAN_QTY = qty
         t.TRAN_NET_PRC = p.VAL_PRC
         t.TRAN_NET_AMT = t.TRAN_QTY * t.TRAN_NET_PRC
-        t.CUR_CODE = p.CUR_CODE
-        t.STRGY_CODE = p.STRGY_CODE
-        t.SUB_ACCT_CODE = p.SUB_ACCT_CODE
-        t.SECU_TYPE_CODE = p.SECU_TYPE_CODE
-        t.TX_FEE = p.TX_FEE
-        t.TRAN_NUM = f"GEN_{date.strftime('%Y%m%d')}_{t.SECU_CODE}_{t.PRD_CODE}"
-        t.INSTR_NUM = t.TRAN_NUM
-        t.CREATE_TIME = p.CREATE_TIME
-        t.UPDATE_TIME = p.UPDATE_TIME
-        if direction == "buy":
-            t.TX_TYPE_CODE = "T02.02.000.001"
-        else:
-            t.TX_TYPE_CODE = "T02.02.000.002"
 
         return t
 
 
 def pos_compare(
-    start: list[POSMODEL], stop: list[POSMODEL], date: datetime.date, build: Callable
+    env: Env, start: list[POSTYPE], stop: list[POSTYPE], date: datetime.date
 ):
     result = []
     for p1 in start:
         p2 = next((x for x in stop if x.SECU_CODE == p1.SECU_CODE), None)
-        trade = build(p1, p2, date)
+        trade = env.trade_builder(env, p1, p2, date)
         if trade:
             result.append(trade)
 
     for p2 in stop:
         p1 = next((x for x in start if x.SECU_CODE == p1.SECU_CODE), None)
         if p1 is None:
-            trade = build(p1, p2, date)
+            trade = env.trade_builder(env, p1, p2, date)
             if trade:
                 result.append(trade)
     return result
@@ -187,12 +143,12 @@ def insert_trades(env: Env, results: list):
 
 
 def handle_product(env: Env):
-    positions: list[POSMODEL] = fetch_positions(env)
+    positions: list[POSTYPE] = fetch_positions(env)
     logger.info(
         f"获取产品[{env.product_code}][{env.model.__tablename__}]持仓：{len(positions)}条记录"
     )
 
-    pos_group: dict[datetime.date, list[POSMODEL]] = {}
+    pos_group: dict[datetime.date, list[POSTYPE]] = {}
 
     for p in positions:
         if p.BIZ_DATE not in pos_group:
@@ -208,9 +164,7 @@ def handle_product(env: Env):
         stop = dates[i + 1]
         logger.info(f"处理{start}的持仓到{stop}的持仓。")
         results.extend(
-            pos_compare(
-                pos_group.get(start), pos_group.get(stop), stop, env.trade_builder
-            )
+            pos_compare(env, pos_group.get(start), pos_group.get(stop), stop)
         )
 
     insert_trades(env, results)
@@ -223,13 +177,12 @@ def process(files: list[str], config: ExcelConfig, args: Args, sink: MultiSink):
     env.engine = sink.db_sink.engine
     for code in products:
         env.product_code = code
+        env.trade_builder = build_trades
 
         env.model = INDICBASESTOCKPOSDTL
         env.target_model = INDICBASETXSTOCK
-        env.trade_builder = build_trade_stock
         handle_product(env)
 
         env.model = INDICBASEBONDPOSDTL
         env.target_model = INDICBASETXBOND
-        env.trade_builder = build_trade_bond
         handle_product(env)
