@@ -93,6 +93,7 @@ def build_trades(
         t.INSTR_NUM = t.TRAN_NUM
         t.CREATE_TIME = p.CREATE_TIME
         t.UPDATE_TIME = p.UPDATE_TIME
+        t.INVES_CLS_CODE = "C"
 
         if isinstance(t, INDICBASETXSTOCK):
             t.TRAN_PRC = p.VAL_PRC
@@ -110,6 +111,7 @@ def build_trades(
             t.INT_AMT = t.TRAN_QTY * unit_int
             t.STL_FULL_PRC = unit_int + t.TRAN_NET_PRC
             t.ACTL_STL_AMT = t.STL_FULL_PRC * t.TRAN_QTY
+            t.INVES_CLS_CODE = p.INVES_CLS_CODE
 
         return t
 
