@@ -326,6 +326,9 @@ def handle_value(context: ProcessContext, define: DataCell | str | int | float):
 
 
 def process(files: list[str], config: ExcelConfig, args: Args, sink: MultiSink):
+    if config is None:
+        logger.error(f"未找到估值表解析配置：{args.config}")
+        exit(1)
     for file in files:
         process_excel_file(file, config, args, sink)
 

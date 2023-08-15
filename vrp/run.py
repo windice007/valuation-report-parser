@@ -43,7 +43,7 @@ def current_dir_files(dir):
 def load_config_file(args: Args):
     file = search_app_file(args.config, args.dir)
     if file is None:
-        raise FileNotFoundError(args.config)
+        return None
 
     logger.info(f"加载配置文件：{os.path.abspath(file)}")
 
@@ -96,7 +96,7 @@ def main():
     files = current_dir_files(args.dir)
 
     if len(files) == 0:
-        print("指定工作目录没有找到估值文件(*.xls|*.xlsx)")
+        logger.warning("指定工作目录没有找到估值文件(*.xls|*.xlsx)")
 
     if args.entry is None:
         process(files, config, args, sink)
