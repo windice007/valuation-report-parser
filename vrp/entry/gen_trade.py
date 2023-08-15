@@ -93,16 +93,19 @@ def build_trades(
         t.INSTR_NUM = t.TRAN_NUM
         t.CREATE_TIME = p.CREATE_TIME
         t.UPDATE_TIME = p.UPDATE_TIME
-        if direction == "buy":
-            t.TX_TYPE_CODE = "T01.01.000.001"
-        else:
-            t.TX_TYPE_CODE = "T01.01.000.002"
 
-        t.TRAN_PRC = p.VAL_PRC
-        t.TRAN_AMT = t.TRAN_QTY * t.TRAN_PRC
-
-        t.TRAN_NET_PRC = p.VAL_PRC
-        t.TRAN_NET_AMT = t.TRAN_QTY * t.TRAN_NET_PRC
+        if isinstance(t, INDICBASETXSTOCK):
+            t.TRAN_PRC = p.VAL_PRC
+            t.TRAN_AMT = t.TRAN_QTY * t.TRAN_PRC
+            t.TX_TYPE_CODE = (
+                "T01.01.000.001" if direction == "buy" else "T01.01.000.002"
+            )
+        elif isinstance(t, INDICBASETXBOND):
+            t.TRAN_NET_PRC = p.VAL_PRC
+            t.TRAN_NET_AMT = t.TRAN_QTY * t.TRAN_NET_PRC
+            t.TX_TYPE_CODE = (
+                "T02.02.000.001" if direction == "buy" else "T02.02.000.002"
+            )
 
         return t
 
