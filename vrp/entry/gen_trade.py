@@ -68,6 +68,7 @@ def build_trade_stock(
             direction = "sell"
         elif qty < 0:
             direction = "buy"
+        qty = abs(qty)
 
     if qty > 0:
         p: INDICBASESTOCKPOSDTL = p1
@@ -89,7 +90,7 @@ def build_trade_stock(
         t.SUB_ACCT_CODE = p.SUB_ACCT_CODE
         t.SECU_TYPE_CODE = p.SECU_TYPE_CODE
         t.TX_FEE = p.TX_FEE
-        t.TRAN_NUM = f"{date.strftime('%Y%m%d')}_{t.SECU_CODE}_{t.PRD_CODE}"
+        t.TRAN_NUM = f"GEN_{date.strftime('%Y%m%d')}_{t.SECU_CODE}_{t.PRD_CODE}"
         t.INSTR_NUM = t.TRAN_NUM
         t.CREATE_TIME = p.CREATE_TIME
         t.UPDATE_TIME = p.UPDATE_TIME
@@ -138,7 +139,7 @@ def build_trade_bond(
         t.SUB_ACCT_CODE = p.SUB_ACCT_CODE
         t.SECU_TYPE_CODE = p.SECU_TYPE_CODE
         t.TX_FEE = p.TX_FEE
-        t.TRAN_NUM = f"{date.strftime('%Y%m%d')}_{t.SECU_CODE}_{t.PRD_CODE}"
+        t.TRAN_NUM = f"GEN_{date.strftime('%Y%m%d')}_{t.SECU_CODE}_{t.PRD_CODE}"
         t.INSTR_NUM = t.TRAN_NUM
         t.CREATE_TIME = p.CREATE_TIME
         t.UPDATE_TIME = p.UPDATE_TIME
