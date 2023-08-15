@@ -106,6 +106,10 @@ def build_trades(
             t.TX_TYPE_CODE = (
                 "T02.02.000.001" if direction == "buy" else "T02.02.000.002"
             )
+            unit_int = p.RECVBL_INT_BAL / p.POS_QTY
+            t.INT_AMT = t.TRAN_QTY * unit_int
+            t.STL_FULL_PRC = unit_int + t.TRAN_NET_PRC
+            t.ACTL_STL_AMT = t.STL_FULL_PRC * t.TRAN_QTY
 
         return t
 
