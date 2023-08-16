@@ -52,24 +52,46 @@
                                 "SECU_NAME": {
                                     "address": "B"
                                 },
-                                "HOLD_ATTR_CODE": {
-                                    "address": "A",
-                                    "capture_regex": "^(\\d{4})",
-                                    "mapping": {
-                                        "1202": "1",
-                                        "2202": "2",
-                                        "$_": ""
+                                "HOLD_ATTR_CODE": [
+                                    {
+                                        "address": "A",
+                                        "capture_regex": "^(\\d{4})",
+                                        "mapping": {
+                                            "1202": "1",
+                                            "2202": "2",
+                                            "$_": ""
+                                        }
+                                    },
+                                    {
+                                        "subject_filter_regex": "^3102\\w{5,}",
+                                        "subject_code": {
+                                            "address": "A",
+                                            "capture_regex": "^(\\d{8})"
+                                        },
+                                        "address": "B",
+                                        "mapping_rule": "contains",
+                                        "mapping": {
+                                            "空头": "3",
+                                            "多头": "4",
+                                            "$_": ""
+                                        }
                                     }
-                                },
-                                "INV_CLS_CODE": {
-                                    "formula": "AST_CLS_CODE",
-                                    "mapping": {
-                                        "STOCK": "C",
-                                        "FUND": "C",
-                                        "BOND": "C",
-                                        "$_": ""
+                                ],
+                                "INV_CLS_CODE": [
+                                    {
+                                        "formula": "AST_CLS_CODE",
+                                        "mapping": {
+                                            "STOCK": "C",
+                                            "FUND": "C",
+                                            "BOND": "C",
+                                            "$_": ""
+                                        }
+                                    },
+                                    {
+                                        "subject_filter_regex": "^2101\\w{5,}",
+                                        "value": "TFL"
                                     }
-                                },
+                                ],
                                 "MARKET_CODE": {
                                     "subject_code": {
                                         "address": "A",
@@ -182,38 +204,6 @@
                                 "RECEIVABLE_DIVIDEND_L": {
                                     "address": "E"
                                 }
-                            }
-                        },
-                        {
-                            "subject_filter_regex": "^3102\\w{5,}",
-                            "merge_keys": [
-                                "SYMBOL",
-                                "AST_CLS_CODE"
-                            ],
-                            "values": {
-                                "HOLD_ATTR_CODE": {
-                                    "subject_code": {
-                                        "address": "A",
-                                        "capture_regex": "^(\\d{8})"
-                                    },
-                                    "address": "B",
-                                    "mapping_rule": "contains",
-                                    "mapping": {
-                                        "空头": "3",
-                                        "多头": "4",
-                                        "$_": ""
-                                    }
-                                }
-                            }
-                        },
-                        {
-                            "subject_filter_regex": "^2101\\w{5,}",
-                            "merge_keys": [
-                                "SYMBOL",
-                                "AST_CLS_CODE"
-                            ],
-                            "values": {
-                                "INV_CLS_CODE": "TFL"
                             }
                         }
                     ]

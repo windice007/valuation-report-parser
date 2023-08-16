@@ -42,7 +42,11 @@ class ProcessContext:
 
 def capture_data(context: ProcessContext, cell: DataCell, row: int = None) -> str:
     sheet = context.sheet
-    if cell == None or cell.address == None:
+    if cell is None:
+        return None
+    if cell.value is not None:
+        return cell.value
+    if cell.address is None:
         return None
     cell_value = None
     if cell.address in context.env:

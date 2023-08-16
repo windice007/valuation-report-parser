@@ -1,4 +1,4 @@
-from typing import List, Literal, Protocol
+from typing import Any, List, Literal, Protocol
 
 
 class DataCell(Protocol):
@@ -10,6 +10,7 @@ class DataCell(Protocol):
     formula: str
     type: Literal["number", "str", None]
     subject_filter_regex: str | None
+    value: Any
 
 
 class HandlerDefine(Protocol):
