@@ -19,6 +19,7 @@ from decimal import Decimal
 from sqlalchemy import Table, Numeric
 from dateutil.parser import parse as parse_date
 import pyexcel
+import os
 
 
 class ProcessContext:
@@ -303,9 +304,19 @@ def safe_float(v):
         return Decimal(0)
 
 
-def handle_value(context: ProcessContext, define: DataCell | str | int | float):
+def handle_value(context: ProcessContext, define: DataCell | str | int | float | list):
     if define is None:
         return None
+
+    if isinstance(define, list):
+        cv = None
+        for item in define:
+            mask_regex = getattr(item, "subject_filter_regex", None)
+            if mask_regex is None or re.search(
+                mask_regex, str(context.current_row_code)
+            ):
+                cv = handle_value(context, item)
+        return cv
 
     if isinstance(define, str):
         if define in context.env:
@@ -343,7 +354,7 @@ def process_excel_file(file: str, config: ExcelConfig, args: Args, sink: MultiSi
     context.is_debug = args.debug
     context.sink = sink
     context.env = {
-        ENV_FILE_NAME: file,
+        ENV_FILE_NAME: os.path.basename(file),
         ENV_PROCESS_TIME: datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
     }
 

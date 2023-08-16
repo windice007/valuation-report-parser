@@ -9,6 +9,7 @@ class DataCell(Protocol):
     mapping_rule: Literal["contains", "equals", "regex", None]
     formula: str
     type: Literal["number", "str", None]
+    subject_filter_regex: str | None
 
 
 class HandlerDefine(Protocol):
