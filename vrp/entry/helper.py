@@ -1,20 +1,55 @@
 """
 helper
 """
+from argparse import ArgumentParser
+from typing import Protocol
 from vrp.base.utils import excel_column_index
 from vrp.excel.define import ExcelConfig
 
+from vrp.run import load_config_file, current_dir_files
+
 
 from vrp.base.logger import logger
-from vrp import Args, __version__
 
 import pyexcel
 import re
 
-from vrp.excel.sink import MultiSink
+
+__version__: str = "0.0.1"
+
+__PROG__: str = "gen_code"
 
 
-def process(files: list[str], config: ExcelConfig, args: Args, sink: MultiSink):
+class Args(Protocol):
+    dir: str
+    debug: bool
+    config: str
+
+
+def set_parser(parser: ArgumentParser):
+    parser.add_argument(
+        "-v",
+        "--version",
+        action="version",
+        version=__version__,
+        help="display app version.",
+    )
+    parser.add_argument(
+        "dir",
+        nargs="?",
+        default=".",
+        type=str,
+        help="指定工作目录，程序会在工作目录中检索可用的估值表文件。如果不设定，默认为当前工作目录。",
+    )
+    parser.add_argument(
+        "-c", "--config", default="config.json", type=str, help="指定配置文件"
+    )
+
+
+def process(args: Args):
+    files = current_dir_files(args.dir)
+    config = load_config_file(args)
+
     result = {}
 
     for file in files:

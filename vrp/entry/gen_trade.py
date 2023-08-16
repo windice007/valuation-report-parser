@@ -1,9 +1,6 @@
-from decimal import Decimal
-from typing import Any, Callable, Protocol
+from argparse import ArgumentParser
+from typing import Callable
 from typing_extensions import Self
-from vrp.excel.sink import MultiSink
-from vrp import Args
-from vrp.excel.define import ExcelConfig
 
 
 from vrp.base.logger import logger
@@ -18,6 +15,7 @@ from vrp.model.mysql_models import (
     INDICBASETXBOND,
 )
 import datetime
+from vrp.excel.sink import check_db_settings
 
 
 POSTYPE = INDICBASESTOCKPOSDTL | INDICBASEBONDPOSDTL
@@ -179,11 +177,13 @@ def handle_product(env: Env):
     insert_trades(env, results)
 
 
-def process(files: list[str], config: ExcelConfig, args: Args, sink: MultiSink):
+def process(args):
+    dbsink = check_db_settings(args)
+
     products = ["3212", "3512", "4523", "541401", "585004", "604310", "611607"]
     # products = ["585004"]
     env: Env = Env()
-    env.engine = sink.db_sink.engine
+    env.engine = dbsink.engine
     for code in products:
         env.product_code = code
         env.trade_builder = build_trades
@@ -195,3 +195,14 @@ def process(files: list[str], config: ExcelConfig, args: Args, sink: MultiSink):
         env.model = INDICBASEBONDPOSDTL
         env.target_model = INDICBASETXBOND
         handle_product(env)
+
+
+def set_parser(parser: ArgumentParser):
+    parser.add_argument(
+        "dir",
+        nargs="?",
+        default=".",
+        type=str,
+        help="指定工作目录，程序会在工作目录中检索可用的估值表文件。如果不设定，默认为当前工作目录。",
+    )
+    parser.add_argument("--connection_url", default="", type=str, help="指定目标数据库的链接字符串")
