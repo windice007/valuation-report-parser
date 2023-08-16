@@ -8,6 +8,7 @@ from vrp.base.logger import logger
 from sqlalchemy import Table, create_engine, MetaData
 from vrp.base import TABLE_NAME, ValuationReportData
 from vrp.base.utils import search_app_file
+from vrp.excel.utils import Dict
 
 
 class Sink(object):
@@ -16,6 +17,8 @@ class Sink(object):
 
 
 def obj_json_default(obj):
+    if type(obj) is Dict:
+        return obj.data
     if type(obj) is decimal.Decimal:
         return float(obj)
     if type(obj) is datetime:

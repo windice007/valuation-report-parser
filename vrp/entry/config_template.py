@@ -1,8 +1,24 @@
 """根据数据库中表字段，生成估值表解析配置模板。"""
 from argparse import ArgumentParser
-from vrp import Args
-from vrp.excel.define import ExcelConfig
-from vrp.excel.sink import MultiSink
+from typing import Protocol
+from vrp.excel.define import (
+    ExcelConfig,
+    GroupDefine,
+    HandlerDefine,
+    PositionDefine,
+    ProductDefine,
+)
+from vrp.excel.sink import check_db_settings, obj_json_default
+from vrp.excel.utils import Dict
+import json
+from sqlalchemy import Table, Column
+
+
+class Args(Protocol):
+    connection_url: str
+    debug: bool
+    position_tables: str
+    product_table: str
 
 
 def set_parser(parser: ArgumentParser):
@@ -13,5 +29,42 @@ def set_parser(parser: ArgumentParser):
     parser.add_argument("--product_table", default=None, type=str, help="指定目标产品指标表")
 
 
-def process(args):
-    pass
+def table_dict(table: Table):
+    result = {}
+
+    for v in table.columns:
+        col: Column = v
+        result[col.key] = ""
+
+    return result
+
+
+def process(args: Args):
+    dbsink = check_db_settings(args)
+    position_tables = args.position_tables.split(",")
+    config: ExcelConfig = Dict()
+    config.subject_code_column = "A"
+
+    if len(position_tables) > 0:
+        config.positions = []
+        for table in position_tables:
+            p: PositionDefine = Dict()
+            p.table = table
+            p.groups = []
+            g: GroupDefine = Dict()
+            g.handlers = []
+            h: HandlerDefine = Dict()
+            h.subject_filter_regex = ".+"
+            h.values = table_dict(dbsink.get_table(table))
+            g.handlers.append(h)
+            p.groups.append(g)
+            config.positions.append(p)
+
+    if args.product_table:
+        prod: ProductDefine = Dict()
+        prod.table = args.product_table
+        prod.values = table_dict(dbsink.get_table(args.product_table))
+        config.product = prod
+
+    with open("config.json", encoding="utf-8", mode="w") as f:
+        json.dump(config, f, default=obj_json_default, ensure_ascii=False, indent=2)
