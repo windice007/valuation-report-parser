@@ -7,9 +7,9 @@ import os
 import argparse
 from vrp.base.logger import logger
 import time
-from entry import helper, gen_trade
+from entry import helper, gen_trade, config_template
 
-ENTRYS: list[ModuleType] = [helper, gen_trade]
+ENTRYS: list[ModuleType] = [helper, gen_trade, config_template]
 
 
 def get_prog(m: ModuleType):
@@ -22,14 +22,18 @@ def get_prog(m: ModuleType):
 
 def main():
     app_start_time = time.time()
-    parser = argparse.ArgumentParser(description="工具程序", prog="tools")
+    parser = argparse.ArgumentParser(
+        description="工具程序", prog="tools", epilog="通过 tools command --help 可以查看每个子命令的具体说明。"
+    )
     parser.add_argument(
         "--debug", action="store_true", default=False, help="启用debug模式，会输出更多信息。"
     )
-    subparsers = parser.add_subparsers(help="子命令说明", dest="command")
+    subparsers = parser.add_subparsers(title="子命令", help="description", dest="command")
 
     for m in ENTRYS:
-        sub_parser = subparsers.add_parser(get_prog(m), help=m.__doc__)
+        sub_parser = subparsers.add_parser(
+            get_prog(m), help=m.__doc__, description=m.__doc__
+        )
         set_parser = getattr(m, "set_parser", None)
         if set_parser:
             set_parser(sub_parser)

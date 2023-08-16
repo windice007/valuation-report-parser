@@ -1,5 +1,5 @@
 """
-helper
+生成目录中所有估值表的科目清单
 """
 from argparse import ArgumentParser
 from typing import Protocol

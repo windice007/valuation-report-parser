@@ -1,3 +1,4 @@
+"""根据目标数据库中的持仓，模拟生成交易。"""
 from argparse import ArgumentParser
 from typing import Callable
 from typing_extensions import Self
