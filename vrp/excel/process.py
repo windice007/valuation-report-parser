@@ -29,6 +29,7 @@ class ProcessContext:
         self.env: dict = None
         self.sink: MultiSink = None
         self.current_row = -1
+        self.current_row_code = None
         self.current_model = {}
         self.is_debug: bool = False
         self.subject_row_map: dict = {}
@@ -149,6 +150,7 @@ def handle_position(
                     if context.is_debug:
                         context.current_model[DATASOUCE] = [code]
                     context.current_row = i
+                    context.current_row_code = code
                     process_data(context, pos.default)
                     process_data(context, group.default)
                     process_data(context, handler.values)
