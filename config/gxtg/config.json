@@ -9,7 +9,7 @@
                     "capture_regex": "(\\d{4}-\\d{2}-\\d{2})"
                 },
                 "PRODUCT_CODE": {
-                    "address": "$FILE_NAME",
+                    "value": "$FILE_NAME",
                     "capture_regex": "_(\\d+)_"
                 },
                 "PORTFOLIO_CODE": {
@@ -245,7 +245,7 @@
                 "capture_regex": "(\\d{4}-\\d{2}-\\d{2})"
             },
             "PRODUCT_CODE": {
-                "address": "$FILE_NAME",
+                "value": "$FILE_NAME",
                 "capture_regex": "_(\\d+)_"
             },
             "PORTFOLIO_CODE": {

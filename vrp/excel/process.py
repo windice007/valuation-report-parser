@@ -47,6 +47,8 @@ def capture_data(context: ProcessContext, cell: DataCell, row: int = None) -> st
     if cell is None:
         return None
     if cell.value is not None:
+        if cell.value in context.env:
+            return context.env.get(cell.value)
         return cell.value
     if cell.address is None:
         return None
