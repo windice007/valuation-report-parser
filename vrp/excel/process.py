@@ -32,6 +32,8 @@ class ProcessContext:
         self.current_row = -1
         self.current_row_code = None
         self.current_model = {}
+        self.current_column = None
+        self.current_table = None
         self.is_debug: bool = False
         self.subject_row_map: dict = {}
 
@@ -132,6 +134,7 @@ def process_positions(context: ProcessContext, vpd: ValuationReportData):
 def handle_position(
     context: ProcessContext, pos: PositionDefine, vpd: ValuationReportData
 ):
+    context.current_table = pos.table
     sheet = context.sheet
     if not isinstance(pos.groups, list):
         logger.warn(f"没有有效的持仓定义:{pos.table}")
@@ -246,6 +249,7 @@ def process_data(context: ProcessContext, data: Dict):
         table: TableProxy = get_table_schema(context, context.current_model[TABLE_NAME])
         for k, v in data:
             logger.debug(f"数据处理：{k}, {v}")
+            context.current_column = k
             val = handle_value(context, v)
             if (
                 table is not None
@@ -271,7 +275,7 @@ def process_product(context: ProcessContext, vpd: ValuationReportData):
 
     pro = config.product
     logger.debug(f"开始处理指标表:{pro.table}")
-
+    context.current_table = pro.table
     context.current_model = create_model(pro.table)
     process_data(context, pro.values)
     vpd.product = context.current_model

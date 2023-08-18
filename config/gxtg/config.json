@@ -28,22 +28,37 @@
                             "address": "A",
                             "capture_regex": "^\\d{8}(\\w+)"
                         },
-                        "AST_CLS_CODE": {
-                            "address": "A",
-                            "capture_regex": "^(\\d{4})",
-                            "mapping": {
-                                "1102": "STOCK",
-                                "1103": "BOND",
-                                "2101": "BOND",
-                                "1104": "ABS",
-                                "1105": "FUND",
-                                "1202": "REPO",
-                                "2202": "REPO",
-                                "1109": "NONSTD",
-                                "3102": "FUTURE",
-                                "$_": ""
+                        "AST_CLS_CODE": [
+                            {
+                                "address": "A",
+                                "capture_regex": "^(\\d{4})",
+                                "mapping": {
+                                    "1102": "STOCK",
+                                    "1103": "BOND",
+                                    "2101": "STOCK",
+                                    "1104": "ABS",
+                                    "1105": "FUND",
+                                    "1202": "REPO",
+                                    "2202": "REPO",
+                                    "1109": "NONSTD",
+                                    "3102": "FUTURE",
+                                    "$_": ""
+                                }
+                            },
+                            {
+                                "subject_filter_regex": "^3102",
+                                "subject_code": {
+                                    "address": "A",
+                                    "capture_regex": "^(\\d{6})"
+                                },
+                                "address": "B",
+                                "mapping_rule": "contains",
+                                "mapping": {
+                                    "期权": "OPTION",
+                                    "$_": "FUTURE"
+                                }
                             }
-                        }
+                        ]
                     },
                     "handlers": [
                         {
@@ -73,6 +88,9 @@
                                         "mapping": {
                                             "空头": "3",
                                             "多头": "4",
+                                            "冲销": "5",
+                                            "认沽": "6",
+                                            "认购": "7",
                                             "$_": ""
                                         }
                                     }
@@ -106,6 +124,10 @@
                                         "沪港通": "HK",
                                         "深港通": "HK",
                                         "理财": "OTC",
+                                        "上海期货交易所": "DCE",
+                                        "大连商品期货交易所": "SHF",
+                                        "郑州期货交易所": "CZCE",
+                                        "上海能源交易所": "INE",
                                         "$_": ""
                                     }
                                 },
