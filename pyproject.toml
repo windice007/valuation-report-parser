@@ -10,7 +10,16 @@ license = { file = "LICENSE" }
 classifiers = ["License :: OSI Approved :: MIT License"]
 dynamic = ["version", "description"]
 requires-python = ">=3.6"
-dependencies = []
+dependencies = [
+    "SQLAlchemy==1.4.48",
+    "PyMySQL==1.1.0",
+    "openpyxl==3.0.10",
+    "pyexcel==0.6.7",
+    "pyexcel-xls==0.7.0",
+    "pyexcel-xlsx==0.6.0",
+    "psycopg2-binary==2.9.6",
+    "opengauss-sqlalchemy==2.1.0",
+]
 
 [project.urls]
 Home = "https://www.iquantex.com"
