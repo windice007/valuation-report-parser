@@ -77,6 +77,7 @@ def build_trades(
         t.PORT_CODE = p.PORT_CODE
         t.AST_UNIT_CODE = p.AST_UNIT_CODE
         t.TX_DATE = date
+        t.CLR_DATE = date + datetime.timedelta(days=1)
         t.SYMBOL = p.SYMBOL
         t.SECU_CODE = p.SECU_CODE
         t.SECU_NAME = p.SECU_NAME
