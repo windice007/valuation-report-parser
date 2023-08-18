@@ -46,31 +46,27 @@ def capture_data(context: ProcessContext, cell: DataCell, row: int = None) -> st
     sheet = context.sheet
     if cell is None:
         return None
-    if cell.value is not None:
-        if cell.value in context.env:
-            return context.env.get(cell.value)
-        return cell.value
-    if cell.address is None:
-        return None
-    cell_value = None
-    if cell.address in context.env:
-        cell_value = context.env.get(cell.address)
-    elif is_position_str(cell.address):
-        cell_value = sheet[cell.address]
-    elif is_position_column_str(cell.address):
-        column_index = excel_column_index(cell.address)
-        subject_code = get_cell_subject_code(context, cell, row)
-        if isinstance(subject_code, str):
-            if subject_code in context.subject_row_map:
-                r = context.subject_row_map[subject_code]
-                cell_value = sheet.cell_value(r, column_index)
+    cell_value = cell.value
+    if cell_value in context.env:
+        cell_value = context.env.get(cell_value)
+
+    if cell.address is not None and cell_value is None:
+        if is_position_str(cell.address):
+            cell_value = sheet[cell.address]
+        elif is_position_column_str(cell.address):
+            column_index = excel_column_index(cell.address)
+            subject_code = get_cell_subject_code(context, cell, row)
+            if isinstance(subject_code, str):
+                if subject_code in context.subject_row_map:
+                    r = context.subject_row_map[subject_code]
+                    cell_value = sheet.cell_value(r, column_index)
+                else:
+                    # raise Exception("未找到指定的科目:{}".format(subject_code))
+                    logger.warn(f"未找到指定的科目:{subject_code}")
             else:
-                # raise Exception("未找到指定的科目:{}".format(subject_code))
-                logger.warn(f"未找到指定的科目:{subject_code}")
+                cell_value = sheet.cell_value(row, column_index)
         else:
-            cell_value = sheet.cell_value(row, column_index)
-    else:
-        logger.warn(f"DataCell.address 配置不正确：{cell.address}")
+            logger.warn(f"DataCell.address 配置不正确：{cell.address}")
 
     if cell_value is None:
         return None
