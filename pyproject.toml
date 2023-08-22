@@ -9,7 +9,7 @@ readme = "readme.md"
 license = { file = "LICENSE" }
 classifiers = ["License :: OSI Approved :: MIT License"]
 dynamic = ["version", "description"]
-requires-python = ">=3.6"
+requires-python = ">=3.7"
 dependencies = [
     "SQLAlchemy>=1.4.48,<2",
     "PyMySQL>=1.1.0",
@@ -34,3 +34,6 @@ tools = "vrp.tools:main"
 
 [tool.flit.module]
 name = "vrp"
+
+[tool.flit.sdist]
+exclude = ["*.bat", "config"]
