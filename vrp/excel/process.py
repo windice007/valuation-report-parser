@@ -294,7 +294,7 @@ def handle_mapping(context: ProcessContext, cell: DataCell, cell_value: str):
                     return v
         if cell.mapping_rule == "regex":
             for k, v in cell.mapping:
-                if is_valid_mapping_key(k) and re.match(k, cell_value):
+                if is_valid_mapping_key(k) and re.search(k, cell_value):
                     return v
         if cell_value in cell.mapping:
             cell_value = getattr(cell.mapping, cell_value)

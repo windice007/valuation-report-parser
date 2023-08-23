@@ -84,9 +84,10 @@
                                             "capture_regex": "^(\\d{8})"
                                         },
                                         "address": "B",
-                                        "mapping_rule": "contains",
+                                        "mapping_rule": "regex",
                                         "mapping": {
-                                            "冲销": "5",
+                                            "冲销.+空头": "35",
+                                            "冲销.+多头": "45",
                                             "空头": "3",
                                             "多头": "4",
                                             "认沽": "6",
