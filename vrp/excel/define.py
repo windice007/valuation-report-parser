@@ -17,6 +17,7 @@ class HandlerDefine(Protocol):
     subject_filter_regex: str
     merge_keys: List[str]
     values: dict
+    post_filter_formula: str | None
 
 
 class GroupDefine:

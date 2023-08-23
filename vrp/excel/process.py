@@ -111,10 +111,15 @@ def convert_str_to_date(v: str) -> datetime:
     return parse_date(v)
 
 
-def custom_eval(formula: str, globals: dict, local: dict):
+def formula_eval(context: ProcessContext, formula: str, params: dict):
+    local = context.current_model
+    globs = {"Decimal": safe_float}
+    globs.update(context.env)
+    if isinstance(params, dict):
+        globs.update(params)
     if isinstance(local, dict):
-        return eval(formula, globals, local)
-    return eval(formula, globals, local.__dict__)
+        return eval(formula, globs, local)
+    return eval(formula, globs, local.__dict__)
 
 
 def process_positions(context: ProcessContext, vpd: ValuationReportData):
@@ -160,10 +165,23 @@ def handle_position(
                     process_data(context, pos.default)
                     process_data(context, group.default)
                     process_data(context, handler.values)
-                    if handler_index == 0:
-                        details.append(context.current_model)
+
+                    commit = True
+                    if isinstance(handler.post_filter_formula, str):
+                        commit = bool(
+                            formula_eval(context, handler.post_filter_formula, None)
+                        )
+                    if commit:
+                        if handler_index == 0:
+                            details.append(context.current_model)
+                        else:
+                            merge_details(
+                                context, details, context.current_model, handler
+                            )
                     else:
-                        merge_details(context, details, context.current_model, handler)
+                        logger.debug(
+                            f"Handler:{handler.subject_filter_regex} Code:{code} Ignored by {handler.post_filter_formula}"
+                        )
                     handle_count = handle_count + 1
             if handle_count > 0:
                 logger.info(
@@ -335,9 +353,7 @@ def handle_value(context: ProcessContext, define: DataCell | str | int | float |
     cell_value = capture_data(context, define, context.current_row)
 
     if define.formula is not None:
-        globals = {"VALUE": cell_value, "Decimal": safe_float}
-        globals.update(context.env)
-        cell_value = custom_eval(define.formula, globals, context.current_model)
+        cell_value = formula_eval(context, define.formula, {"VALUE": cell_value})
 
     logger.debug(f"数据处理结果(mapping前)：{cell_value}")
 
