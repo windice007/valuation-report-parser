@@ -12,3 +12,5 @@ echo "Step3:Build image"
 image=harbor.iquantex.com/data-gateway/vrp:$version
 docker build -t $image .
 docker push $image
+docker tag $image harbor.iquantex.com/data-gateway/vrp:latest
+docker push harbor.iquantex.com/data-gateway/vrp:latest
