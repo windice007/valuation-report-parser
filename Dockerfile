@@ -1,10 +1,12 @@
-FROM python:3.10
+FROM python:3.10-slim
 
-WORKDIR /usr/src/app
+WORKDIR /app
 
 COPY requirements.txt ./
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
+RUN pip install --no-cache-dir --no-deps -r requirements.txt
 
 COPY vrp vrp
 
-CMD [ "python", ".vrp/run.py" ]
+ENV PYTHONPATH "${PYTHONPATH}:/app"
+ENTRYPOINT [ "python", "vrp/run.py" ]
