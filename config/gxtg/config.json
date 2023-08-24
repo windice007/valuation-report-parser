@@ -111,6 +111,19 @@
                                     {
                                         "subject_filter_regex": "^2101\\w{5,}",
                                         "value": "TFL"
+                                    },
+                                    {
+                                        "subject_filter_regex": "^1102\\w{5,}",
+                                        "subject_code": {
+                                            "address": "A",
+                                            "capture_regex": "^(\\d{8})"
+                                        },
+                                        "address": "B",
+                                        "mapping_rule": "contains",
+                                        "mapping": {
+                                            "信用账户": "CREDIT",
+                                            "$_": "C"
+                                        }
                                     }
                                 ],
                                 "MARKET_CODE": {
