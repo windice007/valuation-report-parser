@@ -85,12 +85,19 @@ def main():
 
     logger.info(f"{parser.description} {__version__}")
 
+    dest_file = args.dir if os.path.isfile(args.dir) else None
+    if dest_file is not None:
+        args.dir = os.path.dirname(args.dir)
+
     logger.info(f"工作目录为：{os.path.abspath(args.dir)}")
 
     config: ExcelConfig = load_config_file(args)
     sink = MultiSink(args)
 
-    files = current_dir_files(args.dir)
+    if dest_file is None:
+        files = current_dir_files(args.dir)
+    else:
+        files = [dest_file]
 
     if len(files) == 0:
         logger.warning("指定工作目录没有找到估值文件(*.xls|*.xlsx)")
