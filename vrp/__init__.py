@@ -1,7 +1,7 @@
 """
 valuation report parser
 """
-__version__ = "0.2.7"
+__version__ = "0.2.8"
 
 
 from typing import Protocol
@@ -13,4 +13,3 @@ class Args(Protocol):
     nofile: bool
     config: str
     connection_url: str
-    entry: str | None
