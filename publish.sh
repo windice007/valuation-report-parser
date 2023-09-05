@@ -3,7 +3,7 @@ version=$(python vrp/run.py --version)
 echo "Publish tools-vrp:$version"
 
 echo "Step1:Generate executable application."
-pyinstaller -F vrp/run.py
+pyinstaller -F -n vrp vrp/run.py
 
 echo "Step2:Publish to nexus."
 flit publish --repository nexus
