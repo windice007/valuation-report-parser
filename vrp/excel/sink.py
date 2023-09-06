@@ -33,7 +33,7 @@ class FileSink(Sink):
         file = vpd.file
         with open(f"{file}.json", "w", encoding="utf-8") as writer:
             json.dump(
-                {"positions": vpd.details, "product": vpd.product},
+                {"positions": vpd.details, "products": vpd.products},
                 writer,
                 default=obj_json_default,
                 indent=2,
@@ -78,13 +78,13 @@ class DbSink(Sink):
                     con.execute(table.insert(), record.to_lower_dict())
                 else:
                     con.execute(table.insert(), record)
-            if vpd.product:
-                table = self.get_table(vpd.product[TABLE_NAME])
-                con.execute(self.make_delete_expression(table, vpd.product))
+            for pro in vpd.products:
+                table = self.get_table(pro[TABLE_NAME])
+                con.execute(self.make_delete_expression(table, pro))
                 if self.db_type == "oracle":
-                    con.execute(table.insert(), vpd.product.to_lower_dict())
+                    con.execute(table.insert(), pro.to_lower_dict())
                 else:
-                    con.execute(table.insert(), vpd.product)
+                    con.execute(table.insert(), pro)
         logger.info(f"估值数据写入数据库完成")
 
 

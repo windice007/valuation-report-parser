@@ -20,7 +20,7 @@ class Args(Protocol):
     connection_url: str
     debug: bool
     position_tables: str
-    product_table: str
+    product_tables: str
 
 
 def set_parser(parser: ArgumentParser):
@@ -28,7 +28,7 @@ def set_parser(parser: ArgumentParser):
         "--connection_url", default="", type=str, help="指定目标数据库的链接字符串", required=True
     )
     parser.add_argument("--position_tables", default=None, type=str, help="指定目标持仓表清单")
-    parser.add_argument("--product_table", default=None, type=str, help="指定目标产品指标表")
+    parser.add_argument("--product_tables", default=None, type=str, help="指定目标产品指标表")
 
 
 def table_dict(table: Table):
@@ -73,11 +73,14 @@ def process(args: Args):
             p.groups.append(g)
             config.positions.append(p)
 
-    if args.product_table:
-        prod: ProductDefine = Dict()
-        prod.table = args.product_table
-        prod.values = table_dict(dbsink.get_table(args.product_table))
-        config.product = prod
+    product_tables = args.product_tables.split(",")
+    if len(product_tables):
+        config.products = []
+        for table in product_tables:
+            prod: ProductDefine = Dict()
+            prod.table = table
+            prod.values = table_dict(dbsink.get_table(table))
+            config.products.append(prod)
 
     with open("config.json", encoding="utf-8", mode="w") as f:
         json.dump(config, f, default=obj_json_default, ensure_ascii=False, indent=2)

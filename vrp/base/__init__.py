@@ -5,7 +5,7 @@ class ValuationReportData:
     def __init__(self, file) -> None:
         self.file = file
         self.details: list[CaseDict] = []
-        self.product: CaseDict = None
+        self.products: list[CaseDict] = []
 
 
 TABLE_NAME = "__tablename__"

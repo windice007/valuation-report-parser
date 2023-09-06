@@ -283,18 +283,18 @@ def create_model(table: str):
     return CaseDict({TABLE_NAME: table})
 
 
-def process_product(context: ProcessContext, vpd: ValuationReportData):
+def process_products(context: ProcessContext, vpd: ValuationReportData):
     config = context.config
-    if config.product is None:
+    if not isinstance(config.products, list):
         logger.warn(f"配置文件没有产品定义，不会生成产品数据")
         return
 
-    pro = config.product
-    logger.debug(f"开始处理指标表:{pro.table}")
-    context.current_table = pro.table
-    context.current_model = create_model(pro.table)
-    process_data(context, pro.values)
-    vpd.product = context.current_model
+    for pro in config.products:
+        logger.debug(f"开始处理指标表:{pro.table}")
+        context.current_table = pro.table
+        context.current_model = create_model(pro.table)
+        process_data(context, pro.values)
+        vpd.products.append(context.current_model)
 
 
 def is_valid_mapping_key(k: str):
@@ -389,9 +389,7 @@ def process_excel_file(file: str, config: ExcelConfig, args: Args, sink: MultiSi
 
     vpd = ValuationReportData(file)
     process_positions(context, vpd)
-    process_product(context, vpd)
+    process_products(context, vpd)
 
-    logger.info(
-        f"估值文件处理完成，持仓记录{len(vpd.details)}条，产品记录{0 if vpd.product is None else 1}条。"
-    )
+    logger.info(f"估值文件处理完成，持仓记录{len(vpd.details)}条，产品记录{len(vpd.products)}条。")
     sink.save(vpd)

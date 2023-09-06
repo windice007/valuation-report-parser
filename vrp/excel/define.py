@@ -43,4 +43,4 @@ class ExcelConfig(Protocol):
     subject_code_column: str
     sheet_name: str | None
     positions: List[PositionDefine] | None
-    product: ProductDefine | None
+    products: List[ProductDefine] | None
