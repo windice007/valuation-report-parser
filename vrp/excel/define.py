@@ -10,6 +10,7 @@ class DataCell(Protocol):
     formula: str
     type: Literal["number", "str", None]
     subject_filter_regex: str | None
+    filter_formula: str | None
     value: Any
 
 

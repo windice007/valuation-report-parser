@@ -335,10 +335,22 @@ def handle_value(context: ProcessContext, define: DataCell | str | int | float |
     if isinstance(define, list):
         cv = None
         for item in define:
-            mask_regex = getattr(item, "subject_filter_regex", None)
-            if mask_regex is None or re.search(
-                mask_regex, str(context.current_row_code)
-            ):
+            need_process = True
+
+            if isinstance(item, Dict):
+                cell: DataCell = item
+
+                if cell.filter_formula is not None and not formula_eval(
+                    context, cell.filter_formula, {"VALUE": cv}
+                ):
+                    need_process = False
+
+                if cell.subject_filter_regex is not None and not re.search(
+                    cell.subject_filter_regex, str(context.current_row_code)
+                ):
+                    need_process = False
+
+            if need_process:
                 cv = handle_value(context, item)
         return cv
 
