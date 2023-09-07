@@ -29,13 +29,20 @@ class ProcessContext:
         self.subject_column = excel_column_index(config.subject_code_column)
         self.env: dict = None
         self.sink: MultiSink = None
-        self.current_row = -1
+        self.current_row = None
         self.current_row_code = None
-        self.current_model = {}
+        self.current_model = None
         self.current_column = None
         self.current_table = None
         self.is_debug: bool = False
         self.subject_row_map: dict = {}
+
+    def reset(self):
+        self.current_row = None
+        self.current_row_code = None
+        self.current_model = None
+        self.current_column = None
+        self.current_table = None
 
     def is_oracle(self) -> bool:
         db_sink: DbSink = self.sink.db_sink
@@ -62,11 +69,16 @@ def capture_data(context: ProcessContext, cell: DataCell, row: int = None) -> st
                     cell_value = sheet.cell_value(r, column_index)
                 else:
                     # raise Exception("未找到指定的科目:{}".format(subject_code))
-                    logger.warn(f"未找到指定的科目:{subject_code}")
+                    logger.warn(
+                        f"DataCell.subject_code 配置不正确，未找到指定的科目：'{subject_code}'"
+                    )
             else:
-                cell_value = sheet.cell_value(row, column_index)
+                if row is None:
+                    logger.error(f"DataCell.address 配置不正确，相对地址不可用：'{cell.address}'")
+                else:
+                    cell_value = sheet.cell_value(row, column_index)
         else:
-            logger.warn(f"DataCell.address 配置不正确：{cell.address}")
+            logger.error(f"DataCell.address 配置不正确，不是正确的格式：'{cell.address}'")
 
     if cell_value is None:
         return None
@@ -405,6 +417,7 @@ def process_excel_file(file: str, config: ExcelConfig, args: Args, sink: MultiSi
 
     vpd = ValuationReportData(file)
     process_positions(context, vpd)
+    context.reset()
     process_products(context, vpd)
 
     logger.info(f"估值文件处理完成，持仓记录{len(vpd.details)}条，产品记录{len(vpd.products)}条。")
