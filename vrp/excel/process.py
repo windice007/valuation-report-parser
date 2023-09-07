@@ -142,7 +142,12 @@ def formula_eval(context: ProcessContext, formula: str, params: dict):
             globs[k.replace(ENV_PREFIX, FORMULA_ENV_PREFIX)] = v
         formula = re.sub(f"\{ENV_PREFIX}(\w+)", convert_env, formula)
 
-    return eval(formula, globs, local)
+    try:
+        return eval(formula, globs, local)
+    except NameError as err:
+        logger.error(
+            f"公式计算发生错误：变量'{err.name.replace(FORMULA_ENV_PREFIX,ENV_PREFIX)}'未找到。"
+        )
 
 
 def process_positions(context: ProcessContext, vpd: ValuationReportData):
