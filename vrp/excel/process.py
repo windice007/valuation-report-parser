@@ -5,6 +5,7 @@ from vrp.base import (
     DATASOUCE,
     ENV_FILE_NAME,
     ENV_PROCESS_TIME,
+    ENV_PREFIX,
     TABLE_NAME,
     CaseDict,
     ValuationReportData,
@@ -278,7 +279,11 @@ def merge_details(
 
 def process_data(context: ProcessContext, data: Dict):
     if isinstance(data, Dict):
-        table: TableProxy = get_table_schema(context, context.current_model[TABLE_NAME])
+        table: TableProxy = (
+            get_table_schema(context, context.current_model[TABLE_NAME])
+            if context.current_model
+            else None
+        )
         for k, v in data:
             logger.debug(f"数据处理：{k}, {v}")
             context.current_column = k
@@ -291,8 +296,10 @@ def process_data(context: ProcessContext, data: Dict):
                         val = convert_str_to_date(val)
                 elif table.is_str(k):
                     val = str(val)
-
-            context.current_model[k] = val
+            if context.current_model:
+                context.current_model[k] = val
+            else:
+                context.env[f"{ENV_PREFIX}{k}"] = val
 
 
 def create_model(table: str):
@@ -313,11 +320,20 @@ def process_products(context: ProcessContext, vpd: ValuationReportData):
         vpd.products.append(context.current_model)
 
 
+def process_env(context: ProcessContext):
+    config = context.config
+    if config.env is None:
+        return
+
+    logger.debug("开始处理环境变量")
+    process_data(context, config.env)
+
+
 def is_valid_mapping_key(k: str):
     return k != "" and k != DEFAULT_KEY
 
 
-DEFAULT_KEY: str = "$_"
+DEFAULT_KEY: str = ENV_PREFIX + "_"
 
 
 def handle_mapping(context: ProcessContext, cell: DataCell, cell_value: str):
@@ -415,6 +431,8 @@ def process_excel_file(file: str, config: ExcelConfig, args: Args, sink: MultiSi
         context.subject_row_map[code] = i
         context.subject_row_map[str(code)] = i
 
+    process_env(context)
+    context.reset()
     vpd = ValuationReportData(file)
     process_positions(context, vpd)
     context.reset()

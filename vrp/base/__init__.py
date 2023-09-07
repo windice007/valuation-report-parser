@@ -11,8 +11,9 @@ class ValuationReportData:
 TABLE_NAME = "__tablename__"
 DATASOUCE = "__datasource__"
 
-ENV_FILE_NAME = "$FILE_NAME"
-ENV_PROCESS_TIME = "$PROCESS_TIME"
+ENV_PREFIX = "$"
+ENV_FILE_NAME = ENV_PREFIX + "FILE_NAME"
+ENV_PROCESS_TIME = ENV_PREFIX + "PROCESS_TIME"
 
 
 class CaseDict(dict[str, Any]):
