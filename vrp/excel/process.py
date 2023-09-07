@@ -28,7 +28,7 @@ class ProcessContext:
         self.sheet = sheet
         self.config = config
         self.subject_column = excel_column_index(config.subject_code_column)
-        self.env: dict = None
+        self.env: dict[str] = None
         self.sink: MultiSink = None
         self.current_row = None
         self.current_row_code = None
@@ -124,15 +124,25 @@ def convert_str_to_date(v: str) -> datetime:
     return parse_date(v)
 
 
+FORMULA_ENV_PREFIX: str = "__ENV__"
+
+
+def convert_env(m):
+    return FORMULA_ENV_PREFIX + m[1]
+
+
 def formula_eval(context: ProcessContext, formula: str, params: dict):
     local = context.current_model
     globs = {"Decimal": safe_float}
-    globs.update(context.env)
+
     if isinstance(params, dict):
         globs.update(params)
-    if isinstance(local, dict):
-        return eval(formula, globs, local)
-    return eval(formula, globs, local.__dict__)
+    if ENV_PREFIX in formula:
+        for k, v in context.env.items():
+            globs[k.replace(ENV_PREFIX, FORMULA_ENV_PREFIX)] = v
+        formula = re.sub(f"\{ENV_PREFIX}(\w+)", convert_env, formula)
+
+    return eval(formula, globs, local)
 
 
 def process_positions(context: ProcessContext, vpd: ValuationReportData):
