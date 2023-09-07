@@ -16,7 +16,7 @@ from vrp.excel.sink import DbSink, MultiSink
 from vrp.excel.utils import Dict
 from vrp.base.logger import logger
 from decimal import Decimal
-from sqlalchemy import Table, Numeric
+from sqlalchemy import Table, Numeric, String
 from dateutil.parser import parse as parse_date
 import pyexcel
 import os
@@ -230,6 +230,10 @@ class TableProxy(object):
         column = self.get_column(name)
         return isinstance(column.type, Numeric)
 
+    def is_str(self, name: str):
+        column = self.get_column(name)
+        return isinstance(column.type, String)
+
     def is_oracle_date(self, name: str):
         return False
 
@@ -267,15 +271,15 @@ def process_data(context: ProcessContext, data: Dict):
             logger.debug(f"数据处理：{k}, {v}")
             context.current_column = k
             val = handle_value(context, v)
-            if (
-                table is not None
-                and table.get_column(k) is not None
-                and isinstance(val, str)
-            ):
-                if table.is_number(k):
-                    val = convert_str_to_decimal(val)
-                elif table.is_oracle_date(k):
-                    val = convert_str_to_date(val)
+            if table is not None and table.get_column(k) is not None:
+                if isinstance(val, str):
+                    if table.is_number(k):
+                        val = convert_str_to_decimal(val)
+                    elif table.is_oracle_date(k):
+                        val = convert_str_to_date(val)
+                elif table.is_str(k):
+                    val = str(val)
+
             context.current_model[k] = val
 
 
