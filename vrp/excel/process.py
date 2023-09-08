@@ -71,15 +71,19 @@ def capture_data(context: ProcessContext, cell: DataCell, row: int = None) -> st
                 else:
                     # raise Exception("未找到指定的科目:{}".format(subject_code))
                     logger.warn(
-                        f"DataCell.subject_code 配置不正确，未找到指定的科目：'{subject_code}'"
+                        f"DataCell.subject_code 配置不正确，未找到指定的科目：'{context.current_column}'->'{subject_code}'"
                     )
             else:
                 if row is None:
-                    logger.error(f"DataCell.address 配置不正确，相对地址不可用：'{cell.address}'")
+                    logger.error(
+                        f"DataCell.address 配置不正确，相对地址不可用：'{context.current_column}'->'{cell.address}'"
+                    )
                 else:
                     cell_value = sheet.cell_value(row, column_index)
         else:
-            logger.error(f"DataCell.address 配置不正确，不是正确的格式：'{cell.address}'")
+            logger.error(
+                f"DataCell.address 配置不正确，不是正确的格式：'{context.current_column}'->'{cell.address}'"
+            )
 
     if cell_value is None:
         return None
@@ -92,7 +96,9 @@ def capture_data(context: ProcessContext, cell: DataCell, row: int = None) -> st
             else:
                 cell_value = match[0]
         else:
-            logger.warn(f"未捕获到指定字段：[{cell_value}]@[{cell.capture_regex}]")
+            logger.warn(
+                f"DataCell.capture_regex 配置不正确，未捕获到数据：'{context.current_column}'->'{cell.capture_regex}'->'{cell_value}'"
+            )
             cell_value = None
 
     if cell.type == "number" and isinstance(cell_value, str):
@@ -213,11 +219,11 @@ def handle_position(
                     handle_count = handle_count + 1
             if handle_count > 0:
                 logger.info(
-                    f"Handler:{handler.subject_filter_regex}  Count:{handle_count}"
+                    f"Handler:'{handler.subject_filter_regex}'  Count:{handle_count}"
                 )
             else:
                 logger.warn(
-                    f"Handler:{handler.subject_filter_regex}  Count:{handle_count}"
+                    f"Handler:'{handler.subject_filter_regex}'  Count:{handle_count}"
                 )
 
             handler_index = handler_index + 1
