@@ -89,7 +89,7 @@ class DbSink(Sink):
 
 
 def get_db_connection_url(args: Args):
-    if args.connection_url != "":
+    if isinstance(args.connection_url, str) and args.connection_url != "":
         return args.connection_url
     cp = RawConfigParser()
     settings_file = search_app_file("settings.ini", args.dir)
