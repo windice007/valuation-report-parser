@@ -11,14 +11,13 @@ from vrp.excel.define import (
 from vrp.excel.sink import check_db_settings, obj_json_default
 from vrp.excel.utils import Dict
 import json
-from sqlalchemy import Table, Column
+from sqlalchemy import Table, Column, Date, DateTime, String, Numeric
 import datetime
 import decimal
 
 
 class Args(Protocol):
     connection_url: str
-    debug: bool
     position_tables: str
     product_tables: str
 
@@ -36,17 +35,16 @@ def table_dict(table: Table):
 
     for v in table.columns:
         col: Column = v
-        col_type = col.type.python_type
-        if issubclass(col_type, datetime.date):
-            result[col.key] = datetime.datetime.now().strftime("%Y-%m-%d")
-        elif (
-            issubclass(col_type, decimal.Decimal)
-            or issubclass(col_type, float)
-            or issubclass(col_type, int)
-        ):
-            result[col.key] = 0
-        elif issubclass(col_type, str):
-            result[col.key] = ""
+        col_type = type(col.type)
+        if not col.nullable:
+            if issubclass(col_type, Date):
+                result[col.key] = datetime.datetime.now().strftime("%Y-%m-%d")
+            elif issubclass(col_type, DateTime):
+                result[col.key] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            elif issubclass(col_type, Numeric):
+                result[col.key] = 0
+            elif issubclass(col_type, String):
+                result[col.key] = ""
         else:
             result[col.key] = None
     return result
