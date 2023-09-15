@@ -13,7 +13,7 @@ from vrp.excel.utils import Dict
 import json
 from sqlalchemy import Table, Column, Date, DateTime, String, Numeric
 import datetime
-import decimal
+from configparser import RawConfigParser
 
 
 class Args(Protocol):
@@ -82,3 +82,10 @@ def process(args: Args):
 
     with open("config.json", encoding="utf-8", mode="w") as f:
         json.dump(config, f, default=obj_json_default, ensure_ascii=False, indent=2)
+
+    with open("settings.ini", encoding="utf-8", mode="w") as f:
+        section = "database"
+        cp = RawConfigParser()
+        cp.add_section(section)
+        cp.set(section, "connection_url", args.connection_url)
+        cp.write(f, False)
