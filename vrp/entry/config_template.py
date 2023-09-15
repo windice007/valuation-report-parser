@@ -14,18 +14,19 @@ import json
 from sqlalchemy import Table, Column, Date, DateTime, String, Numeric
 import datetime
 from configparser import RawConfigParser
+from vrp.base.logger import logger
+import os
 
 
 class Args(Protocol):
     connection_url: str
     position_tables: str
     product_tables: str
+    dir: str
 
 
 def set_parser(parser: ArgumentParser):
-    parser.add_argument(
-        "--connection_url", default="", type=str, help="指定目标数据库的链接字符串", required=True
-    )
+    parser.add_argument("--connection_url", default="", type=str, help="指定目标数据库的链接字符串")
     parser.add_argument("--position_tables", default=None, type=str, help="指定目标持仓表清单")
     parser.add_argument("--product_tables", default=None, type=str, help="指定目标产品指标表")
 
@@ -51,7 +52,13 @@ def table_dict(table: Table):
 
 
 def process(args: Args):
+    args.dir = "."
     dbsink = check_db_settings(args)
+
+    if dbsink is None:
+        logger.error(f"目标数据库配置未找到，模板生成失败！")
+        return
+
     position_tables = args.position_tables.split(",")
     config: ExcelConfig = Dict()
     config.subject_code_column = "A"
@@ -80,12 +87,25 @@ def process(args: Args):
             prod.values = table_dict(dbsink.get_table(table))
             config.products.append(prod)
 
-    with open("config.json", encoding="utf-8", mode="w") as f:
+    config_file = "config.json"
+
+    with open(config_file, encoding="utf-8", mode="w") as f:
         json.dump(config, f, default=obj_json_default, ensure_ascii=False, indent=2)
 
-    with open("settings.ini", encoding="utf-8", mode="w") as f:
-        section = "database"
-        cp = RawConfigParser()
-        cp.add_section(section)
-        cp.set(section, "connection_url", args.connection_url)
-        cp.write(f, False)
+    logger.info(f"生成配置模板：{config_file} ")
+
+    settings = "settings.ini"
+
+    if (
+        isinstance(args.connection_url, str)
+        and args.connection_url != ""
+        and not os.path.exists(settings)
+    ):
+        with open(settings, encoding="utf-8", mode="w") as f:
+            section = "database"
+            cp = RawConfigParser()
+            cp.add_section(section)
+            cp.set(section, "connection_url", args.connection_url)
+            cp.write(f, False)
+
+        logger.info(f"生成配置文件：{settings} ")
