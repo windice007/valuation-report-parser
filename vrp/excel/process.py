@@ -28,6 +28,11 @@ class ProcessContext:
         self.sheet = sheet
         self.config = config
         self.subject_column = excel_column_index(config.subject_code_column)
+        self.spare_subject_column = (
+            excel_column_index(config.spare_subject_code_column)
+            if is_position_column_str(config.spare_subject_code_column)
+            else None
+        )
         self.env: dict[str] = None
         self.sink: MultiSink = None
         self.current_row = None
@@ -447,8 +452,13 @@ def process_excel_file(file: str, config: ExcelConfig, args: Args, sink: MultiSi
 
     for i in range(len(sheet)):
         code = sheet.cell_value(i, context.subject_column)
-        if code == "" or code == None:
-            continue
+        if code == "" or code is None:
+            if context.spare_subject_column is not None:
+                code = sheet.cell_value(i, context.spare_subject_column)
+                if code == "" or code is None:
+                    continue
+            else:
+                continue
         context.subject_row_map[code] = i
         context.subject_row_map[str(code)] = i
 

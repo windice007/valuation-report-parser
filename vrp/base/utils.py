@@ -31,13 +31,15 @@ def excel_column_index(index_chars):
 
 
 def is_position_str(pos: str):
-    return (isinstance(pos, str) and re.match("^[A-Za-z]+[0-9]+$", pos)) is not None
+    return isinstance(pos, str) and re.match("^[A-Za-z]+[0-9]+$", pos) is not None
 
 
 def is_position_column_str(pos: str):
-    return (isinstance(pos, str) and re.match("^[A-Za-z]+$", pos)) is not None and len(
-        pos
-    ) < 4
+    return (
+        isinstance(pos, str)
+        and re.match("^[A-Za-z]+$", pos) is not None
+        and len(pos) < 4
+    )
 
 
 def search_app_file(file_name, work_dir) -> str:

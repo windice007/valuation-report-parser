@@ -42,6 +42,7 @@ class ProductDefine:
 
 class ExcelConfig(Protocol):
     subject_code_column: str
+    spare_subject_code_column: str | None
     sheet_name: str | None
     env: dict | None
     positions: List[PositionDefine] | None
