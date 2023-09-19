@@ -9,6 +9,7 @@ from sqlalchemy import Table, create_engine, MetaData
 from vrp.base import TABLE_NAME, ValuationReportData
 from vrp.base.utils import search_app_file
 from vrp.excel.utils import Dict
+from sqlalchemy.engine.url import make_url, URL
 
 
 class Sink(object):
@@ -45,8 +46,18 @@ class FileSink(Sink):
 class DbSink(Sink):
     def __init__(self, connection_url: str):
         super().__init__()
-        self.engine = create_engine(connection_url)
-        self.meta_data = MetaData()
+        url: URL = make_url(connection_url)
+        backend = url.get_backend_name()
+        schema_name = "schema"
+        schema_value = None
+
+        if backend == "postgresql" or backend == "opengauss":
+            if schema_name in url.query:
+                schema_value = url.query[schema_name]
+                url = url.difference_update_query([schema_name])
+
+        self.engine = create_engine(url)
+        self.meta_data = MetaData(schema=schema_value)
 
     def get_table(self, table_name: str) -> Table:
         if self.db_type == "oracle":

@@ -1,7 +1,7 @@
 """
 valuation report parser
 """
-__version__ = "0.2.14"
+__version__ = "0.2.15"
 
 
 from typing import Protocol
