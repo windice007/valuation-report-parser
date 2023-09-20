@@ -47,6 +47,8 @@ def load_config_file(args: Args):
 
     with open(file, "r", encoding="utf-8") as f:
         config: ExcelConfig = json.load(f, object_hook=obj_json_hook)
+        if config.subject_code_column is None:
+            config.subject_code_column = "A"
     return config
 
 
