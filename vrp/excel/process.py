@@ -1,10 +1,11 @@
 from datetime import datetime
 import re
-from vrp import Args
+from vrp import Args, __version__
 from vrp.base import (
     DATASOUCE,
     ENV_FILE_NAME,
     ENV_PROCESS_TIME,
+    ENV_APP_VERSION,
     ENV_PREFIX,
     TABLE_NAME,
     CaseDict,
@@ -450,6 +451,7 @@ def process_excel_file(file: str, config: ExcelConfig, args: Args, sink: MultiSi
     context.env = {
         ENV_FILE_NAME: os.path.basename(file),
         ENV_PROCESS_TIME: datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        ENV_APP_VERSION: __version__,
     }
 
     for i in range(len(sheet)):
