@@ -386,6 +386,7 @@ def safe_float(v):
     try:
         return Decimal(v)
     except:
+        logger.warn(f"Decimal转换失败：{v}")
         return Decimal(0)
 
 
