@@ -136,6 +136,7 @@ def convert_str_to_date(v: str) -> datetime:
 
 
 FORMULA_ENV_PREFIX: str = "__ENV__"
+FORMULA_VALUE = FORMULA_ENV_PREFIX + "VALUE"
 
 
 def convert_env(m):
@@ -400,7 +401,7 @@ def handle_value(context: ProcessContext, define: DataCell | str | int | float |
                 cell: DataCell = item
 
                 if cell.filter_formula is not None and not formula_eval(
-                    context, cell.filter_formula, {"VALUE": cv}
+                    context, cell.filter_formula, {FORMULA_VALUE: cv}
                 ):
                     need_process = False
 
@@ -424,7 +425,7 @@ def handle_value(context: ProcessContext, define: DataCell | str | int | float |
     cell_value = capture_data(context, define, context.current_row)
 
     if define.formula is not None:
-        cell_value = formula_eval(context, define.formula, {"VALUE": cell_value})
+        cell_value = formula_eval(context, define.formula, {FORMULA_VALUE: cell_value})
 
     logger.debug(f"数据处理结果(mapping前)：{cell_value}")
 
