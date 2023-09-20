@@ -321,7 +321,8 @@ def process_data(context: ProcessContext, data: Dict):
                     elif table.is_oracle_date(k):
                         val = convert_str_to_date(val)
                 elif table.is_str(k):
-                    val = str(val)
+                    if val is not None:
+                        val = str(val)
             if context.current_model:
                 context.current_model[k] = val
             else:
