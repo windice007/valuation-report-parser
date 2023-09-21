@@ -30,7 +30,7 @@ def excel_filter(file):
     file_name: str = os.path.basename(file)
     if file_name.startswith("~$"):
         return False
-    return file_name.endswith(".xls") or file_name.endswith(".xlsx")
+    return file_name.lower().endswith((".xls", ".xlsx", ".csv"))
 
 
 def current_dir_files(dir):
