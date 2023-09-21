@@ -59,33 +59,35 @@ def process(args: Args):
         logger.error(f"目标数据库配置未找到，模板生成失败！")
         return
 
-    position_tables = args.position_tables.split(",")
-    config: ExcelConfig = Dict()
-    config.subject_code_column = "A"
+    if isinstance(args.position_tables, str):
+        position_tables = args.position_tables.split(",")
+        config: ExcelConfig = Dict()
+        config.subject_code_column = "A"
 
-    if len(position_tables) > 0:
-        config.positions = []
-        for table in position_tables:
-            p: PositionDefine = Dict()
-            p.table = table
-            p.groups = []
-            g: GroupDefine = Dict()
-            g.handlers = []
-            h: HandlerDefine = Dict()
-            h.subject_filter_regex = ".+"
-            h.values = table_dict(dbsink.get_table(table))
-            g.handlers.append(h)
-            p.groups.append(g)
-            config.positions.append(p)
+        if len(position_tables) > 0:
+            config.positions = []
+            for table in position_tables:
+                p: PositionDefine = Dict()
+                p.table = table
+                p.groups = []
+                g: GroupDefine = Dict()
+                g.handlers = []
+                h: HandlerDefine = Dict()
+                h.subject_filter_regex = ".+"
+                h.values = table_dict(dbsink.get_table(table))
+                g.handlers.append(h)
+                p.groups.append(g)
+                config.positions.append(p)
 
-    product_tables = args.product_tables.split(",")
-    if len(product_tables):
-        config.products = []
-        for table in product_tables:
-            prod: ProductDefine = Dict()
-            prod.table = table
-            prod.values = table_dict(dbsink.get_table(table))
-            config.products.append(prod)
+    if isinstance(args.product_tables, str):
+        product_tables = args.product_tables.split(",")
+        if len(product_tables):
+            config.products = []
+            for table in product_tables:
+                prod: ProductDefine = Dict()
+                prod.table = table
+                prod.values = table_dict(dbsink.get_table(table))
+                config.products.append(prod)
 
     config_file = "config.json"
 
