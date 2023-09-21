@@ -194,7 +194,12 @@ def handle_position(
         for handler in group.handlers:
             logger.debug(f"Handler:{handler.subject_filter_regex}")
             handle_count = 0
+            start_row = (
+                handler.start_row - 1 if isinstance(handler.start_row, int) else 0
+            )
             for i in range(len(sheet)):
+                if i < start_row:
+                    continue
                 code = sheet.cell_value(i, context.subject_column)
                 if code == "" or code == None:
                     continue

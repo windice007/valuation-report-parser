@@ -16,6 +16,7 @@ class DataCell(Protocol):
 
 class HandlerDefine(Protocol):
     subject_filter_regex: str
+    start_row: int
     merge_keys: List[str]
     values: dict
     post_filter_formula: str | None
