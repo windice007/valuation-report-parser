@@ -6,6 +6,7 @@ from vrp.base import (
     ENV_FILE_NAME,
     ENV_PROCESS_TIME,
     ENV_APP_VERSION,
+    ENV_ROW_INDEX,
     ENV_PREFIX,
     TABLE_NAME,
     CaseDict,
@@ -203,6 +204,7 @@ def handle_position(
                         context.current_model[DATASOUCE] = [code]
                     context.current_row = i
                     context.current_row_code = code
+                    context.env[ENV_ROW_INDEX] = i
                     process_data(context, pos.default)
                     process_data(context, group.default)
                     process_data(context, handler.values)
@@ -453,6 +455,7 @@ def process_excel_file(file: str, config: ExcelConfig, args: Args, sink: MultiSi
         ENV_FILE_NAME: os.path.basename(file),
         ENV_PROCESS_TIME: datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         ENV_APP_VERSION: __version__,
+        ENV_ROW_INDEX: None,
     }
 
     for i in range(len(sheet)):
@@ -471,6 +474,7 @@ def process_excel_file(file: str, config: ExcelConfig, args: Args, sink: MultiSi
     context.reset()
     vpd = ValuationReportData(file)
     process_positions(context, vpd)
+    context.env[ENV_ROW_INDEX] = None
     context.reset()
     process_products(context, vpd)
 
