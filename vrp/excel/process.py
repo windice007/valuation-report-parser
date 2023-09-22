@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, date
 import re
 from vrp import Args, __version__
 from vrp.base import (
@@ -19,7 +19,7 @@ from vrp.excel.sink import DbSink, MultiSink
 from vrp.excel.utils import Dict
 from vrp.base.logger import logger
 from decimal import Decimal
-from sqlalchemy import Table, Numeric, String
+from sqlalchemy import Table, Numeric, String, Date, DateTime
 from dateutil.parser import parse as parse_date
 import pyexcel
 import os
@@ -108,10 +108,6 @@ def capture_data(context: ProcessContext, cell: DataCell, row: int = None) -> st
             )
             cell_value = None
 
-    if cell.type == "number" and isinstance(cell_value, str):
-        cell_value = convert_str_to_decimal(cell_value)
-    elif cell.type == "str" and not isinstance(cell_value, str):
-        cell_value = str(cell_value)
     return cell_value
 
 
@@ -133,8 +129,21 @@ def convert_str_to_decimal(v: str) -> Decimal:
         return Decimal(v)
 
 
-def convert_str_to_date(v: str) -> datetime:
+def convert_str_to_date(v: str) -> date:
+    dt = convert_str_to_datetime(v)
+    return dt.date() if dt is not None else None
+
+
+def convert_str_to_datetime(v: str) -> datetime:
+    if v == "":
+        return None
     return parse_date(v)
+
+
+def convert_any_to_str(v) -> str:
+    if v is None:
+        return None
+    return str(v)
 
 
 FORMULA_ENV_PREFIX: str = "__ENV__"
@@ -282,8 +291,13 @@ class TableProxy(object):
         column = self.get_column(name)
         return isinstance(column.type, String)
 
-    def is_oracle_date(self, name: str):
-        return False
+    def is_date(self, name: str):
+        column = self.get_column(name)
+        return isinstance(column.type, Date)
+
+    def is_datetime(self, name: str):
+        column = self.get_column(name)
+        return isinstance(column.type, DateTime)
 
 
 def get_table_schema(context: ProcessContext, table_name: str):
@@ -327,11 +341,24 @@ def process_data(context: ProcessContext, data: Dict):
                 if isinstance(val, str):
                     if table.is_number(k):
                         val = convert_str_to_decimal(val)
-                    elif table.is_oracle_date(k):
+                    elif table.is_date(k):
                         val = convert_str_to_date(val)
+                    elif table.is_datetime(k):
+                        val = convert_str_to_datetime(val)
                 elif table.is_str(k):
-                    if val is not None:
-                        val = str(val)
+                    val = convert_any_to_str(val)
+            elif isinstance(v, Dict) and isinstance(v.type, str):
+                cell: DataCell = v
+                if isinstance(val, str):
+                    if cell.type == "number":
+                        val = convert_str_to_decimal(val)
+                    elif cell.type == "date":
+                        val = convert_str_to_date(val)
+                    elif cell.type == "datetime":
+                        val = convert_str_to_datetime(val)
+                elif cell.type == "str":
+                    val = convert_any_to_str(val)
+
             if context.current_model:
                 context.current_model[k] = val
             else:

@@ -1,5 +1,5 @@
 from configparser import RawConfigParser
-from datetime import datetime
+from datetime import datetime, date
 import decimal
 import json
 import os
@@ -26,6 +26,8 @@ def obj_json_default(obj):
         if obj.hour == 0 and obj.minute == 0 and obj.second == 0:
             return obj.strftime("%Y-%m-%d")
         return obj.strftime("%Y-%m-%d %H:%M:%S")
+    if type(obj) is date:
+        return obj.strftime("%Y-%m-%d")
     return obj
 
 
