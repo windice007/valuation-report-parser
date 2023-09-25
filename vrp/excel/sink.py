@@ -50,16 +50,31 @@ class DbSink(Sink):
         super().__init__()
         url: URL = make_url(connection_url)
         backend = url.get_backend_name()
-        schema_name = "schema"
-        schema_value = None
 
         if backend == "postgresql" or backend == "opengauss":
+            schema_name = "schema"
+            options_name = "options"
+            options_value = ""
             if schema_name in url.query:
-                schema_value = url.query[schema_name]
+                schema_value = url.query[schema_name].strip()
                 url = url.difference_update_query([schema_name])
 
+                if len(schema_value) > 0:
+                    if options_name in url.query:
+                        options_value = url.query[options_name].strip()
+
+                    options_value = options_value + " -c search_path=" + schema_value
+                    url.update_query_pairs(
+                        [
+                            (
+                                options_name,
+                                options_value.strip(),
+                            )
+                        ]
+                    )
+
         self.engine = create_engine(url)
-        self.meta_data = MetaData(schema=schema_value)
+        self.meta_data = MetaData()
 
     def get_table(self, table_name: str) -> Table:
         if self.db_type == "oracle":
