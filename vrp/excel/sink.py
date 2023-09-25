@@ -64,7 +64,7 @@ class DbSink(Sink):
                         options_value = url.query[options_name].strip()
 
                     options_value = options_value + " -c search_path=" + schema_value
-                    url.update_query_pairs(
+                    url = url.update_query_pairs(
                         [
                             (
                                 options_name,
