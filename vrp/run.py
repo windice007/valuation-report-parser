@@ -1,9 +1,9 @@
 """
 valuation report parser
 """
+from io import TextIOBase
 import json
 import logging
-from typing import IO
 from vrp.base.utils import search_app_file
 from vrp.excel.define import ExcelConfig
 
@@ -46,7 +46,7 @@ def init_config(config: ExcelConfig):
 
 
 def load_config_file(args: Args):
-    if isinstance(args.config, IO[str]):
+    if isinstance(args.config, TextIOBase):
         config: ExcelConfig = json.loads(args.config.read(), object_hook=obj_json_hook)
         return init_config(config)
 
