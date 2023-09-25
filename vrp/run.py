@@ -3,6 +3,7 @@ valuation report parser
 """
 import json
 import logging
+from typing import IO
 from vrp.base.utils import search_app_file
 from vrp.excel.define import ExcelConfig
 
@@ -38,7 +39,17 @@ def current_dir_files(dir):
     return list(filter(excel_filter, result))
 
 
+def init_config(config: ExcelConfig):
+    if config.subject_code_column is None:
+        config.subject_code_column = "A"
+    return config
+
+
 def load_config_file(args: Args):
+    if isinstance(args.config, IO[str]):
+        config: ExcelConfig = json.loads(args.config.read(), object_hook=obj_json_hook)
+        return init_config(config)
+
     file = search_app_file(args.config, args.dir)
     if file is None:
         return None
@@ -47,9 +58,7 @@ def load_config_file(args: Args):
 
     with open(file, "r", encoding="utf-8") as f:
         config: ExcelConfig = json.load(f, object_hook=obj_json_hook)
-        if config.subject_code_column is None:
-            config.subject_code_column = "A"
-    return config
+    return init_config(config)
 
 
 def process_file(
