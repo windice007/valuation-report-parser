@@ -6,7 +6,8 @@ import os
 from vrp import Args
 from vrp.base.logger import logger
 from sqlalchemy import Table, create_engine, MetaData
-from vrp.base import TABLE_NAME, ValuationReportData
+from sqlalchemy.engine import Connection
+from vrp.base import TABLE_NAME, CaseDict, ValuationReportData
 from vrp.base.utils import search_app_file
 from vrp.excel.utils import Dict
 from sqlalchemy.engine.url import make_url, URL
@@ -88,31 +89,34 @@ class DbSink(Sink):
     def db_type(self) -> str:
         return self.engine.name
 
-    def make_delete_expression(self, table: Table, record: dict):
-        exp = table.delete()
+    def update_or_insert_record(self, con: Connection, record: CaseDict):
+        table = self.get_table(record[TABLE_NAME])
         keys = table.primary_key.columns.keys()
-        for key in keys:
-            exp = exp.where(table.c[key] == record[key])
-        return exp
+        rowcount = -1
+
+        if len(keys) > 0:
+            exp = table.update()
+            for key in keys:
+                exp = exp.where(table.c[key] == record[key])
+            result = con.execute(exp, record)
+            rowcount = result.rowcount
+
+        if rowcount > 0:
+            return
+
+        if self.db_type == "oracle":
+            con.execute(table.insert(), record.to_lower_dict())
+        else:
+            con.execute(table.insert(), record)
 
     def save(self, vpd: ValuationReportData):
         if self.engine is None:
             return
         with self.engine.begin() as con:
             for record in vpd.details:
-                table = self.get_table(record[TABLE_NAME])
-                con.execute(self.make_delete_expression(table, record))
-                if self.db_type == "oracle":
-                    con.execute(table.insert(), record.to_lower_dict())
-                else:
-                    con.execute(table.insert(), record)
-            for pro in vpd.products:
-                table = self.get_table(pro[TABLE_NAME])
-                con.execute(self.make_delete_expression(table, pro))
-                if self.db_type == "oracle":
-                    con.execute(table.insert(), pro.to_lower_dict())
-                else:
-                    con.execute(table.insert(), pro)
+                self.update_or_insert_record(con, record)
+            for record in vpd.products:
+                self.update_or_insert_record(con, record)
         logger.info(f"估值数据写入数据库完成")
 
 
