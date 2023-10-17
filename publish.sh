@@ -6,7 +6,7 @@ echo "Publish tools-vrp:$version"
 # pyinstaller -F -n vrp vrp/run.py
 
 echo "Step2:Publish to nexus."
-flit publish --format wheel --repository nexus
+flit publish --repository nexus
 
 # echo "Step3:Build image"
 # image=harbor.iquantex.com/data-gateway/vrp:$version
