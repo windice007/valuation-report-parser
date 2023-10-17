@@ -36,4 +36,4 @@ tools = "vrp.tools:main"
 name = "vrp"
 
 [tool.flit.sdist]
-exclude = ["*.bat", "config", "Dockerfile", "*.sh"]
+exclude = ["*.bat", "config", "Dockerfile", "*.sh", ".gitignore"]
