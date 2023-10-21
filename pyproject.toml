@@ -13,12 +13,12 @@ requires-python = ">=3.7"
 dependencies = [
     "SQLAlchemy>=1.4.48,<2",
     "PyMySQL>=1.1.0",
-    "openpyxl>=3.0.10",
-    "pyexcel>=0.6.7",
-    "pyexcel-xls>=0.7.0",
-    "pyexcel-xlsx>=0.6.0",
+    "openpyxl==3.0.10",
+    "pyexcel==0.6.7",
+    "pyexcel-xls==0.7.0",
+    "pyexcel-xlsx==0.6.0",
     "python-dateutil==2.8.2",
-    "cryptography",
+    "cryptography==41.0.3",
 ]
 optional-dependencies = { gauss = [
     "psycopg2-binary==2.9.6",
