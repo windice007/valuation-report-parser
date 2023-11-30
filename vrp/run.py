@@ -13,6 +13,7 @@ from vrp.excel.utils import Dict, obj_json_hook
 # hidden import
 import pyexcel_xls
 import pyexcel_xlsx
+import pyexcel_io.readers
 import pyexcel_io.writers
 from cryptography.hazmat.primitives.kdf import pbkdf2
 import opengauss_sqlalchemy.psycopg2
