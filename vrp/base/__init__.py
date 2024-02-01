@@ -17,6 +17,9 @@ ENV_PROCESS_TIME = ENV_PREFIX + "PROCESS_TIME"
 ENV_APP_VERSION = ENV_PREFIX + "APP_VERSION"
 ENV_ROW_INDEX = ENV_PREFIX + "ROW_INDEX"
 
+ENV_ROW_COUNT = ENV_PREFIX + "ROW_COUNT"
+ENV_COLUMN_COUNT = ENV_PREFIX + "COLUMN_COUNT"
+
 
 class CaseDict(dict[str, Any]):
     def __contains__(self, __o: object) -> bool:

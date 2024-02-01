@@ -3,9 +3,11 @@ import re
 from vrp import Args, __version__
 from vrp.base import (
     DATASOUCE,
+    ENV_COLUMN_COUNT,
     ENV_FILE_NAME,
     ENV_PROCESS_TIME,
     ENV_APP_VERSION,
+    ENV_ROW_COUNT,
     ENV_ROW_INDEX,
     ENV_PREFIX,
     TABLE_NAME,
@@ -504,6 +506,8 @@ def process_excel_file(file: str, config: ExcelConfig, args: Args, sink: MultiSi
         ENV_PROCESS_TIME: datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         ENV_APP_VERSION: __version__,
         ENV_ROW_INDEX: None,
+        ENV_ROW_COUNT: sheet.number_of_rows(),
+        ENV_COLUMN_COUNT: sheet.number_of_columns(),
     }
 
     for i in range(len(sheet)):
