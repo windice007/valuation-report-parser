@@ -14,7 +14,12 @@ from vrp.base import (
 )
 from vrp.excel.define import DataCell, ExcelConfig, HandlerDefine, PositionDefine
 from pyexcel.sheet import Sheet
-from vrp.base.utils import excel_column_index, is_position_column_str, is_position_str
+from vrp.base.utils import (
+    excel_cell_position,
+    excel_column_index,
+    is_position_column_str,
+    is_position_str,
+)
 from vrp.excel.sink import DbSink, MultiSink
 from vrp.excel.utils import Dict
 from vrp.base.logger import logger
@@ -57,8 +62,19 @@ class ProcessContext:
         return db_sink.db_type == "oracle"
 
 
-def capture_data(context: ProcessContext, cell: DataCell, row: int = None) -> str:
+def safe_cell_value(context: ProcessContext, row: int, column: int):
     sheet = context.sheet
+    config = context.config
+    try:
+        return sheet.cell_value(row, column)
+    except IndexError as err:
+        if config.raise_index_out_range_error:
+            raise err
+        else:
+            return None
+
+
+def capture_data(context: ProcessContext, cell: DataCell, row: int = None) -> str:
     if cell is None:
         return None
     cell_value = cell.value
@@ -67,16 +83,16 @@ def capture_data(context: ProcessContext, cell: DataCell, row: int = None) -> st
 
     if cell.address is not None and cell_value is None:
         if is_position_str(cell.address):
-            cell_value = sheet[cell.address]
+            r, c = excel_cell_position(cell.address)
+            cell_value = safe_cell_value(context, r, c)
         elif is_position_column_str(cell.address):
             column_index = excel_column_index(cell.address)
             subject_code = get_cell_subject_code(context, cell, row)
             if isinstance(subject_code, str):
                 if subject_code in context.subject_row_map:
                     r = context.subject_row_map[subject_code]
-                    cell_value = sheet.cell_value(r, column_index)
+                    cell_value = safe_cell_value(context, r, column_index)
                 else:
-                    # raise Exception("未找到指定的科目:{}".format(subject_code))
                     logger.warn(
                         f"DataCell.subject_code 配置不正确，未找到指定的科目：'{context.current_column}'->'{subject_code}'"
                     )
@@ -86,7 +102,7 @@ def capture_data(context: ProcessContext, cell: DataCell, row: int = None) -> st
                         f"DataCell.address 配置不正确，相对地址不可用：'{context.current_column}'->'{cell.address}'"
                     )
                 else:
-                    cell_value = sheet.cell_value(row, column_index)
+                    cell_value = safe_cell_value(context, row, column_index)
         else:
             logger.error(
                 f"DataCell.address 配置不正确，不是正确的格式：'{context.current_column}'->'{cell.address}'"

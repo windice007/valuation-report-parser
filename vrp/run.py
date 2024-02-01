@@ -43,6 +43,8 @@ def current_dir_files(dir):
 def init_config(config: ExcelConfig):
     if config.subject_code_column is None:
         config.subject_code_column = "A"
+    if config.raise_index_out_range_error is None:
+        config.raise_index_out_range_error = True
     return config
 
 

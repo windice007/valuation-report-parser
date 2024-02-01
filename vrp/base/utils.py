@@ -30,6 +30,17 @@ def excel_column_index(index_chars):
         return _get_index(index_chars.upper())
 
 
+def excel_cell_position(pos_chars):
+    """translate MS excel position to index"""
+    if len(pos_chars) < 2:
+        return -1, -1
+    group = re.match("([A-Za-z]+)([0-9]+)", pos_chars)
+    if group:
+        return int(group.group(2)) - 1, excel_column_index(group.group(1))
+    else:
+        raise IndexError
+
+
 def is_position_str(pos: str):
     return isinstance(pos, str) and re.match("^[A-Za-z]+[0-9]+$", pos) is not None
 
