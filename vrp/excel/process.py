@@ -419,6 +419,7 @@ DEFAULT_KEY: str = ENV_PREFIX + "_"
 
 def handle_mapping(context: ProcessContext, cell: DataCell, cell_value: str):
     if isinstance(cell.mapping, Dict):
+        logger.debug(f"数据处理结果(mapping前)：{cell_value}")
         if cell.mapping_rule == "contains":
             for k, v in cell.mapping:
                 if is_valid_mapping_key(k) and k in cell_value:
@@ -481,8 +482,6 @@ def handle_value(context: ProcessContext, define: DataCell | str | int | float |
     if define.formula is not None:
         logger.debug(f"数据处理结果(公式前)：{cell_value}")
         cell_value = formula_eval(context, define.formula, {FORMULA_VALUE: cell_value})
-
-    logger.debug(f"数据处理结果(mapping前)：{cell_value}")
 
     return handle_mapping(context, define, cell_value)
 
