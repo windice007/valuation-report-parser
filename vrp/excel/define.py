@@ -8,7 +8,7 @@ class DataCell(Protocol):
     mapping: dict
     mapping_rule: Literal["contains", "equals", "regex", None]
     formula: str
-    type: Literal["number", "str", None]
+    type: Literal["number", "str", "date", "datetime", None]
     subject_filter_regex: str | None
     filter_formula: str | None
     value: Any
