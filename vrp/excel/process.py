@@ -227,10 +227,10 @@ def handle_position(
             for i in range(len(sheet)):
                 if i < start_row:
                     continue
-                code = sheet.cell_value(i, context.subject_column)
-                if code == "" or code == None:
+                code = row_code_str(i, context)
+                if code == "":
                     continue
-                if re.search(handler.subject_filter_regex, str(code)):
+                if re.search(handler.subject_filter_regex, code):
                     context.current_model = create_model(pos.table)
                     if context.is_debug:
                         context.current_model[DATASOUCE] = [code]
@@ -479,6 +479,7 @@ def handle_value(context: ProcessContext, define: DataCell | str | int | float |
     cell_value = capture_data(context, define, context.current_row)
 
     if define.formula is not None:
+        logger.debug(f"数据处理结果(公式前)：{cell_value}")
         cell_value = formula_eval(context, define.formula, {FORMULA_VALUE: cell_value})
 
     logger.debug(f"数据处理结果(mapping前)：{cell_value}")
@@ -492,6 +493,15 @@ def process(files: list[str], config: ExcelConfig, args: Args, sink: MultiSink):
         exit(1)
     for file in files:
         process_excel_file(file, config, args, sink)
+
+
+def row_code_str(row: int, context: ProcessContext) -> str:
+    sheet = context.sheet
+    code = sheet.cell_value(row, context.subject_column)
+    if code == "" or code is None:
+        if context.spare_subject_column is not None:
+            code = sheet.cell_value(row, context.spare_subject_column)
+    return "" if code is None else str(code)
 
 
 def process_excel_file(file: str, config: ExcelConfig, args: Args, sink: MultiSink):
@@ -511,16 +521,10 @@ def process_excel_file(file: str, config: ExcelConfig, args: Args, sink: MultiSi
     }
 
     for i in range(len(sheet)):
-        code = sheet.cell_value(i, context.subject_column)
-        if code == "" or code is None:
-            if context.spare_subject_column is not None:
-                code = sheet.cell_value(i, context.spare_subject_column)
-                if code == "" or code is None:
-                    continue
-            else:
-                continue
+        code = row_code_str(i, context)
+        if code == "":
+            continue
         context.subject_row_map[code] = i
-        context.subject_row_map[str(code)] = i
 
     process_env(context)
     context.reset()
@@ -530,5 +534,7 @@ def process_excel_file(file: str, config: ExcelConfig, args: Args, sink: MultiSi
     context.reset()
     process_products(context, vpd)
 
-    logger.info(f"估值文件处理完成，持仓记录{len(vpd.details)}条，产品记录{len(vpd.products)}条。")
+    logger.info(
+        f"估值文件处理完成，持仓记录{len(vpd.details)}条，产品记录{len(vpd.products)}条。"
+    )
     sink.save(vpd)
