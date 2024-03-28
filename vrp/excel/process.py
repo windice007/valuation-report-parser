@@ -437,6 +437,8 @@ def handle_mapping(context: ProcessContext, cell: DataCell, cell_value: str):
 
 def safe_float(v):
     try:
+        if isinstance(v, str):
+            return convert_str_to_decimal(v)
         return Decimal(v)
     except:
         logger.warn(f"Decimal转换失败：{v}")
