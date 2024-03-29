@@ -355,6 +355,7 @@ def process_data(context: ProcessContext, data: Dict):
             logger.debug(f"数据处理：{k}, {v}")
             context.current_column = k
             val = handle_value(context, v)
+            logger.debug(f"数据处理结果：{k}={val}，type={type(val)}")
             if table is not None and table.get_column(k) is not None:
                 if isinstance(val, str):
                     if table.is_number(k):
@@ -377,6 +378,7 @@ def process_data(context: ProcessContext, data: Dict):
                 elif cell.type == "str":
                     val = convert_any_to_str(val)
 
+            logger.debug(f"数据类型转换结果：{k}={val}，type={type(val)}")
             if context.current_model:
                 context.current_model[k] = val
             else:

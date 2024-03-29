@@ -1,4 +1,7 @@
+from datetime import date, datetime
+import decimal
 from typing import Any
+import json
 
 
 class Dict:
@@ -20,7 +23,7 @@ class Dict:
         return iter(self.data.items())
 
     def __str__(self) -> str:
-        return str(self.data)
+        return json.dumps(self.data, default=obj_json_default, ensure_ascii=False)
 
     def __contains__(self, element) -> bool:
         return element in self.data
@@ -28,3 +31,17 @@ class Dict:
 
 def obj_json_hook(dic: dict):
     return Dict(dic)
+
+
+def obj_json_default(obj):
+    if type(obj) is Dict:
+        return obj.data
+    if type(obj) is decimal.Decimal:
+        return float(obj)
+    if type(obj) is datetime:
+        if obj.hour == 0 and obj.minute == 0 and obj.second == 0:
+            return obj.strftime("%Y-%m-%d")
+        return obj.strftime("%Y-%m-%d %H:%M:%S")
+    if type(obj) is date:
+        return obj.strftime("%Y-%m-%d")
+    return obj

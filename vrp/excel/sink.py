@@ -1,6 +1,4 @@
 from configparser import RawConfigParser
-from datetime import datetime, date
-import decimal
 import json
 import os
 from vrp import Args
@@ -9,27 +7,13 @@ from sqlalchemy import Table, create_engine, MetaData
 from sqlalchemy.engine import Connection
 from vrp.base import TABLE_NAME, CaseDict, ValuationReportData
 from vrp.base.utils import search_app_file
-from vrp.excel.utils import Dict
+from vrp.excel.utils import obj_json_default
 from sqlalchemy.engine.url import make_url, URL
 
 
 class Sink(object):
     def save(self, vpd: ValuationReportData):
         pass
-
-
-def obj_json_default(obj):
-    if type(obj) is Dict:
-        return obj.data
-    if type(obj) is decimal.Decimal:
-        return float(obj)
-    if type(obj) is datetime:
-        if obj.hour == 0 and obj.minute == 0 and obj.second == 0:
-            return obj.strftime("%Y-%m-%d")
-        return obj.strftime("%Y-%m-%d %H:%M:%S")
-    if type(obj) is date:
-        return obj.strftime("%Y-%m-%d")
-    return obj
 
 
 class FileSink(Sink):
@@ -139,7 +123,9 @@ def check_db_settings(args: Args) -> DbSink | None:
         logger.info(f"目标数据库为：{db_url}")
         return DbSink(db_url)
     else:
-        logger.warn(f"目标数据库配置未找到，请检查参数--connection_url 或者 settings.ini")
+        logger.warn(
+            f"目标数据库配置未找到，请检查参数--connection_url 或者 settings.ini"
+        )
 
 
 class MultiSink(Sink):
