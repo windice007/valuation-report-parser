@@ -1,5 +1,6 @@
 from datetime import datetime, date
 import re
+import shutil
 from vrp import Args, __version__
 from vrp.base import (
     DATASOUCE,
@@ -509,7 +510,17 @@ def row_code_str(row: int, context: ProcessContext) -> str:
 
 def process_excel_file(file: str, config: ExcelConfig, args: Args, sink: MultiSink):
     logger.info(f"开始处理估值文件：{file}")
-    sheet = pyexcel.get_sheet(file_name=file, sheet_name=config.sheet_name)
+
+    try:
+        sheet = pyexcel.get_sheet(file_name=file, sheet_name=config.sheet_name)
+    except NotImplementedError:
+        tmp_file = file + "x"
+        print(f"read file_name<{file}> fail, try read file<{tmp_file}>")
+        shutil.copy(file, tmp_file)
+        try:
+            sheet = pyexcel.get_sheet(file_name=tmp_file, sheet_name=config.sheet_name)
+        finally:
+            os.remove(tmp_file)
 
     context = ProcessContext(sheet, config)
     context.is_debug = args.debug
