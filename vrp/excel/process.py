@@ -15,7 +15,13 @@ from vrp.base import (
     CaseDict,
     ValuationReportData,
 )
-from vrp.excel.define import DataCell, ExcelConfig, HandlerDefine, PositionDefine
+from vrp.excel.define import (
+    DataCell,
+    ExcelConfig,
+    HandlerDefine,
+    PositionDefine,
+    Target_Type,
+)
 from pyexcel.sheet import Sheet
 from vrp.base.utils import (
     excel_cell_position,
@@ -302,6 +308,17 @@ class TableProxy(object):
                 return v
         return None
 
+    def get_column_type(self, name: str) -> Target_Type | None:
+        if self.is_number(name):
+            return "number"
+        if self.is_str(name):
+            return "str"
+        if self.is_date(name):
+            return "date"
+        if self.is_datetime(name):
+            return "datetime"
+        return None
+
     def is_number(self, name: str):
         column = self.get_column(name)
         return isinstance(column.type, Numeric)
@@ -345,6 +362,24 @@ def merge_details(
             target[DATASOUCE].extend(model[DATASOUCE])
 
 
+def convert_value(val, t: Target_Type):
+    if isinstance(val, str):
+        if t == "number":
+            return convert_str_to_decimal(val)
+        if t == "date":
+            return convert_str_to_date(val)
+        if t == "datetime":
+            return convert_str_to_datetime(val)
+
+    # if isinstance(val, int):
+    #     if t == "date" or t == "datetime":
+    #         return convert_int_to_date(val)
+
+    if t == "str":
+        return convert_any_to_str(val)
+    return val
+
+
 def process_data(context: ProcessContext, data: Dict):
     if isinstance(data, Dict):
         table: TableProxy = (
@@ -358,26 +393,10 @@ def process_data(context: ProcessContext, data: Dict):
             val = handle_value(context, v)
             logger.debug(f"数据处理结果：{k}={val}，type={type(val)}")
             if table is not None and table.get_column(k) is not None:
-                if isinstance(val, str):
-                    if table.is_number(k):
-                        val = convert_str_to_decimal(val)
-                    elif table.is_date(k):
-                        val = convert_str_to_date(val)
-                    elif table.is_datetime(k):
-                        val = convert_str_to_datetime(val)
-                elif table.is_str(k):
-                    val = convert_any_to_str(val)
+                val = convert_value(val, table.get_column_type(k))
             elif isinstance(v, Dict) and isinstance(v.type, str):
                 cell: DataCell = v
-                if isinstance(val, str):
-                    if cell.type == "number":
-                        val = convert_str_to_decimal(val)
-                    elif cell.type == "date":
-                        val = convert_str_to_date(val)
-                    elif cell.type == "datetime":
-                        val = convert_str_to_datetime(val)
-                elif cell.type == "str":
-                    val = convert_any_to_str(val)
+                val = convert_value(val, cell.type)
 
             logger.debug(f"数据类型转换结果：{k}={val}，type={type(val)}")
             if context.current_model:
