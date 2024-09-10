@@ -362,7 +362,7 @@ def merge_details(
             target[DATASOUCE].extend(model[DATASOUCE])
 
 
-def convert_int_to_date(time: int):
+def convert_int_to_datetime(time: int):
     # 20050631
     # 20060707134422
 
@@ -380,7 +380,7 @@ def convert_int_to_date(time: int):
             minute=(time % 10000) // 100,
             second=(time % 100),
         )
-    return time
+    return datetime.fromtimestamp(time)
 
 
 def convert_value(val, t: Target_Type):
@@ -393,8 +393,10 @@ def convert_value(val, t: Target_Type):
             return convert_str_to_datetime(val)
 
     if isinstance(val, int):
-        if t == "date" or t == "datetime":
-            return convert_int_to_date(val)
+        if t == "date":
+            return convert_int_to_datetime(val).date()
+        if t == "datetime":
+            return convert_int_to_datetime(val)
 
     if t == "str":
         return convert_any_to_str(val)
