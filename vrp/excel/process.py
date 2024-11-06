@@ -83,6 +83,39 @@ def safe_cell_value(context: ProcessContext, row: int, column: int):
             return None
 
 
+def merged_value(context: ProcessContext, cell: DataCell, row: int, column: int):
+    if row is None or column is None:
+        return None
+
+    if cell.merged_value == "auto":
+        raise NotImplementedError("DataCell.merged_value : auto")
+    else:
+        match cell.merged_value:
+            case "up":
+                ro = -1
+                co = 0
+            case "down":
+                ro = 1
+                co = 0
+            case "left":
+                ro = 0
+                co = -1
+            case "right":
+                ro = 0
+                co = 1
+        r = row
+        c = column
+        while True:
+            r = r + ro
+            c = c + co
+            try:
+                val = context.sheet.cell_value(r, c)
+                if val is not None and val != "":
+                    return val
+            except:
+                return None
+
+
 def capture_data(context: ProcessContext, cell: DataCell, row: int = None) -> str:
     if cell is None:
         return None
@@ -100,7 +133,8 @@ def capture_data(context: ProcessContext, cell: DataCell, row: int = None) -> st
             if isinstance(subject_code, str):
                 if subject_code in context.subject_row_map:
                     r = context.subject_row_map[subject_code]
-                    cell_value = safe_cell_value(context, r, column_index)
+                    c = column_index
+                    cell_value = safe_cell_value(context, r, c)
                 else:
                     logger.warn(
                         f"DataCell.subject_code 配置不正确，未找到指定的科目：'{context.current_column}'->'{subject_code}'"
@@ -111,11 +145,18 @@ def capture_data(context: ProcessContext, cell: DataCell, row: int = None) -> st
                         f"DataCell.address 配置不正确，相对地址不可用：'{context.current_column}'->'{cell.address}'"
                     )
                 else:
+                    r = row
+                    c = column_index
                     cell_value = safe_cell_value(context, row, column_index)
         else:
             logger.error(
                 f"DataCell.address 配置不正确，不是正确的格式：'{context.current_column}'->'{cell.address}'"
             )
+
+    if (cell_value is None or cell_value == "") and cell.merged_value is not None:
+        temp = merged_value(context, cell, r, c)
+        if temp is not None:
+            cell_value = temp
 
     if cell_value is None:
         return None

@@ -1,6 +1,7 @@
 from typing import Any, List, Literal, Protocol
 
 Target_Type = Literal["number", "str", "date", "datetime"]
+MERGED_VALUE_TYPE = Literal["up", "down", "left", "right", "auto"]
 
 
 class DataCell(Protocol):
@@ -14,6 +15,7 @@ class DataCell(Protocol):
     subject_filter_regex: str | None
     filter_formula: str | None
     value: Any
+    merged_value: MERGED_VALUE_TYPE | None
 
 
 class HandlerDefine(Protocol):
