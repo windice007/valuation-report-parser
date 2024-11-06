@@ -11,6 +11,10 @@ import logging
 
 
 def init_logger():
+    default_logger = logging.getLogger()
+    if default_logger.hasHandlers():
+        return default_logger
+
     instance = logging.Logger("User")
     instance.setLevel(logging.INFO)
     fmt = logging.Formatter("[%(asctime)s] %(levelname)s: %(message)s")
