@@ -270,11 +270,13 @@ def handle_position(
             logger.debug(f"Handler:{handler.subject_filter_regex}")
             handle_count = 0
             start_row = (
-                handler.start_row - 1 if isinstance(handler.start_row, int) else 0
+                handler.start_row - 1 if isinstance(handler.start_row, int) else -1
             )
             for i in range(len(sheet)):
                 if i < start_row:
                     continue
+                if handler.stop_row is not None and i >= handler.stop_row:
+                    break
                 code = row_code_str(i, context)
                 if code == "":
                     continue

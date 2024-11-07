@@ -50,8 +50,19 @@ class DataCell(Protocol):
 
 
 class HandlerDefine(Protocol):
+
     subject_filter_regex: str
+    """
+    subject_filter_regex: 当前Handler处理数据时，会过滤掉科目代码不匹配这个正则的行。
+    """
     start_row: int
+    """
+    start_row: 当前Handler处理的开始行号，不设置程序会从第一行开始处理。
+    """
+    stop_row: int | None
+    """
+    stop_row: 当前Handler处理的结束行号，不设置程序会处理所有可处理的行。
+    """
     merge_keys: List[str]
     values: dict
     post_filter_formula: str | None
@@ -78,9 +89,27 @@ class ProductDefine:
 
 class ExcelConfig(Protocol):
     subject_code_column: str
+    """
+    subject_code_column: 重要设置，设置科目代码列。也是后续过滤以及定位数据的重要属性。原则上，这一列的数据是不可重复的。
+    """
     spare_subject_code_column: str | None
+    """
+    spare_subject_code_column: 设置备用科目代码列。当subject_code_column配置的列获取的科目代码为空时，会使用备用科目代码列的数据，在某些特殊的估值表格式会需要设置这个值。
+    """
     raise_index_out_range_error: bool | None
     sheet_name: str | None
+    """
+    sheet_name: 设置Excel的sheet名称，当估值表文件不仅一个sheet的时候使用。
+    """
     env: dict | None
+    """
+    env: 一个字典结构，预设或者从Excel中抓取的全局数据，可以在后续的formula配置中引用。
+    """
     positions: List[PositionDefine] | None
+    """
+    positions: 处理持仓的配置列表。
+    """
     products: List[ProductDefine] | None
+    """
+    products: 处理产品数据的配置列表。
+    """
