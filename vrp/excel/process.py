@@ -593,6 +593,15 @@ def row_code_str(row: int, context: ProcessContext) -> str:
     return "" if code is None else str(code)
 
 
+def stylesheet_fix(func):
+    def wrapper(*args, **kwargs):
+        fills = kwargs["fills"]
+        kwargs["fills"] = list(filter(lambda x: x is not None, fills))
+        func(*args, **kwargs)
+
+    return wrapper
+
+
 def process_excel_file(file: str, config: ExcelConfig, args: Args, sink: MultiSink):
     logger.info(f"开始处理估值文件：{file}")
 
@@ -606,6 +615,18 @@ def process_excel_file(file: str, config: ExcelConfig, args: Args, sink: MultiSi
             sheet = pyexcel.get_sheet(file_name=tmp_file, sheet_name=config.sheet_name)
         finally:
             os.remove(tmp_file)
+    except TypeError as err:
+        if (
+            len(err.args) > 0
+            and err.args[0] == "expected <class 'openpyxl.styles.fills.Fill'>"
+        ):
+            # 处理一个特殊的bug，xlsx文件中的style标签为空标签，导致openpyxl无法解析。
+            from openpyxl.styles.stylesheet import Stylesheet
+
+            Stylesheet.__init__ = stylesheet_fix(Stylesheet.__init__)
+            sheet = pyexcel.get_sheet(file_name=file, sheet_name=config.sheet_name)
+        else:
+            raise err
 
     context = ProcessContext(sheet, config)
     context.is_debug = args.debug
