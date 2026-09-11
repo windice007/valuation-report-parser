@@ -59,11 +59,11 @@ def process(args: Args):
         logger.error(f"目标数据库配置未找到，模板生成失败！")
         return
 
+    config: ExcelConfig = Dict()
+    config.subject_code_column = "A"
+
     if isinstance(args.position_tables, str):
         position_tables = args.position_tables.split(",")
-        config: ExcelConfig = Dict()
-        config.subject_code_column = "A"
-
         if len(position_tables) > 0:
             config.positions = []
             for table in position_tables:
