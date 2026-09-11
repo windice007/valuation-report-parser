@@ -1,6 +1,7 @@
 from datetime import datetime, date
 import re
 import shutil
+from tempfile import TemporaryDirectory
 from vrp import Args, __version__
 from vrp.base import (
     DATASOUCE,
@@ -616,13 +617,11 @@ def process_excel_file(file: str, config: ExcelConfig, args: Args, sink: MultiSi
     try:
         sheet = pyexcel.get_sheet(file_name=file, sheet_name=config.sheet_name)
     except NotImplementedError:
-        tmp_file = file + "x"
-        print(f"read file_name<{file}> fail, try read file<{tmp_file}>")
-        shutil.copy(file, tmp_file)
-        try:
+        with TemporaryDirectory(prefix="vrp-") as tmp_dir:
+            tmp_file = os.path.join(tmp_dir, os.path.basename(file) + "x")
+            logger.info(f"read file_name<{file}> fail, try read file<{tmp_file}>")
+            shutil.copyfile(file, tmp_file)
             sheet = pyexcel.get_sheet(file_name=tmp_file, sheet_name=config.sheet_name)
-        finally:
-            os.remove(tmp_file)
     except TypeError as err:
         if (
             len(err.args) > 0
