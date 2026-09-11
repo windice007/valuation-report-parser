@@ -1,9 +1,13 @@
 from configparser import RawConfigParser
 import json
 import os
+from time import perf_counter
 from vrp import Args
 from vrp.base.logger import logger
-from sqlalchemy import Table, create_engine, MetaData
+from sqlalchemy import (
+    Table, create_engine, MetaData, String, Text, Enum, CHAR, Numeric, Float,
+    and_, cast, column, select, values,
+)
 from sqlalchemy.engine import Connection
 from vrp.base import TABLE_NAME, CaseDict, ValuationReportData
 from vrp.base.utils import search_app_file
@@ -31,8 +35,11 @@ class FileSink(Sink):
 
 
 class DbSink(Sink):
-    def __init__(self, connection_url: str):
+    def __init__(self, connection_url: str, batch_size: int = 1000):
         super().__init__()
+        if isinstance(batch_size, bool) or not isinstance(batch_size, int) or batch_size < 1:
+            raise ValueError("batch_size must be a positive integer")
+        self.batch_size = batch_size
         url: URL = make_url(connection_url)
         backend = url.get_backend_name()
 
@@ -93,15 +100,138 @@ class DbSink(Sink):
         else:
             con.execute(table.insert(), record)
 
+    @staticmethod
+    def _batch_key(table, row):
+        key = []
+        for col in table.primary_key.columns:
+            value = row[col.key]
+            try:
+                expected_type = col.type.python_type
+            except NotImplementedError:
+                return None
+            # Database coercion can make Python-distinct keys compare equal.
+            # Keep the legacy path for such keys instead of silently reordering
+            # their updates or changing the original WHERE comparison.
+            if (
+                type(value) is not expected_type
+                or isinstance(col.type, (CHAR, Numeric))
+                or (expected_type is str and not isinstance(col.type, String))
+                or getattr(col.type, "collation", None)
+            ):
+                return None
+            key.append(value)
+        key = tuple(key)
+        try:
+            hash(key)
+        except TypeError:
+            return None
+        return key
+
+    def _postgresql_batches(self, records):
+        """Keep input order, splitting on shape changes and repeated primary keys."""
+        current_table = None
+        current_fields = None
+        batch = []
+        seen = set()
+        for record in records:
+            table = self.get_table(record[TABLE_NAME])
+            # Use reflected column names, not CaseDict's original key casing.
+            row = {c.key: record[c.key] for c in table.columns if c.key in record}
+            fields = tuple(row)
+            key = self._batch_key(table, row)
+            if key is None:
+                if batch:
+                    yield current_table, batch
+                    batch = []
+                    seen.clear()
+                yield table, [row]
+                continue
+            limit = min(self.batch_size, max(1, 30000 // max(1, len(fields))))
+            if batch and (
+                table is not current_table
+                or fields != current_fields
+                or len(batch) >= limit
+                or (key and key in seen)
+            ):
+                yield current_table, batch
+                batch = []
+                seen.clear()
+            current_table, current_fields = table, fields
+            batch.append(row)
+            if key:
+                seen.add(key)
+        if batch:
+            yield current_table, batch
+
+    def _save_postgresql_batch(self, con: Connection, table: Table, rows: list):
+        if self._batch_key(table, rows[0]) is None:
+            self.update_or_insert_record(con, CaseDict({TABLE_NAME: table.key, **rows[0]}))
+            return
+        if not table.primary_key.columns:
+            if not rows[0]:
+                # DEFAULT VALUES has no multi-row form.
+                for _ in rows:
+                    con.execute(table.insert().values())
+            else:
+                con.execute(table.insert().values(rows))
+            return
+
+        fields = tuple(rows[0])
+
+        def source_type(name):
+            data_type = table.c[name].type
+            # Casting to VARCHAR(n) would silently truncate overlong input before
+            # the destination can enforce its length constraint.
+            if isinstance(data_type, String) and not isinstance(data_type, Enum):
+                return Text()
+            if isinstance(data_type, Numeric) and not isinstance(data_type, Float):
+                return Numeric()
+            return data_type
+
+        # Cast columns once rather than constructing a Cast expression for every
+        # cell. This also handles an all-NULL VALUES column (inferred as text).
+        incoming = values(
+            *(column(name, source_type(name)) for name in fields),
+            name="vrp_values",
+        ).data([tuple(row[name] for name in fields) for row in rows])
+        source = select(*(
+            cast(incoming.c[name], source_type(name)).label(name) for name in fields
+        )).subquery("vrp_source" if table.name != "vrp_source" else "vrp_source_1")
+        match = and_(*(c == source.c[c.key] for c in table.primary_key.columns))
+        updates = {
+            name: source.c[name] for name in fields
+            if name not in table.primary_key.columns
+        }
+        if not updates:
+            key = next(iter(table.primary_key.columns))
+            updates[key.key] = source.c[key.key]
+        con.execute(table.update().where(match).values(updates))
+
+        # Unlike INSERT ... ON CONFLICT, this accepts partial updates to existing
+        # rows even when omitted columns have NOT NULL constraints and no default.
+        exists = select(1).select_from(table).where(match).correlate(source).exists()
+        missing = select(*(source.c[name] for name in fields)).where(~exists)
+        con.execute(table.insert().from_select(fields, missing, include_defaults=False))
+
     def save(self, vpd: ValuationReportData):
         if self.engine is None:
             return
+        started = perf_counter()
+        batches = 0
         with self.engine.begin() as con:
-            for record in vpd.details:
-                self.update_or_insert_record(con, record)
-            for record in vpd.products:
-                self.update_or_insert_record(con, record)
-        logger.info(f"估值数据写入数据库完成")
+            for records in (vpd.details, vpd.products):
+                if self.db_type == "postgresql":
+                    for table, rows in self._postgresql_batches(records):
+                        self._save_postgresql_batch(con, table, rows)
+                        batches += 1
+                else:
+                    for record in records:
+                        self.update_or_insert_record(con, record)
+                        batches += 1
+        logger.info(
+            "估值数据写入数据库完成，记录%d条，批次%d个，耗时%.3f秒",
+            len(vpd.details) + len(vpd.products), batches, perf_counter() - started,
+        )
 
 
 def get_db_connection_url(args: Args):
