@@ -11,8 +11,9 @@ classifiers = ["License :: OSI Approved :: MIT License"]
 dynamic = ["version", "description"]
 requires-python = ">=3.7"
 dependencies = [
-    "SQLAlchemy>=1.4.48,<2",
-    "PyMySQL>=1.1.0",
+    "SQLAlchemy==1.4.48",
+    "PyMySQL==1.1.0",
+    "psycopg2-binary==2.9.6",
     "openpyxl==3.0.10",
     "pyexcel==0.6.7",
     "pyexcel-xls==0.7.0",
@@ -21,9 +22,8 @@ dependencies = [
     "cryptography==41.0.3",
 ]
 optional-dependencies = { gauss = [
-    "psycopg2-binary==2.9.6",
     "opengauss-sqlalchemy==2.1.0",
-] }
+], test = ["pytest>=7,<10"] }
 
 [project.urls]
 Home = "https://www.iquantex.com"
