@@ -16,7 +16,13 @@ import pyexcel_xlsx
 import pyexcel_io.readers.csv_in_file
 import pyexcel_io.writers
 from cryptography.hazmat.primitives.kdf import pbkdf2
-import opengauss_sqlalchemy.psycopg2
+
+# Keep a static import so PyInstaller collects the optional dialect when installed.
+try:
+    import opengauss_sqlalchemy.psycopg2
+except ModuleNotFoundError as err:
+    if err.name != "opengauss_sqlalchemy":
+        raise
 
 import os
 import argparse
