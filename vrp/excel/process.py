@@ -186,6 +186,7 @@ def get_cell_subject_code(
 
 
 def convert_str_to_decimal(v: str) -> Decimal:
+    v = re.sub(r"^([+-])\s+", r"\1", v.strip())
     v = v.replace(",", "")
     if v == "":
         return Decimal(0)
