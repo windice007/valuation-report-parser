@@ -427,7 +427,12 @@ def convert_int_to_datetime(time: int):
     return datetime.fromtimestamp(time)
 
 
-def convert_value(val, t: Target_Type):
+def convert_value(val, t: Target_Type, nullable: bool = True):
+    if t == "number" and (
+        val is None or (isinstance(val, str) and not val.strip())
+    ):
+        return None if nullable else Decimal(0)
+
     if isinstance(val, str):
         if t == "number":
             return convert_str_to_decimal(val)
@@ -460,7 +465,9 @@ def process_data(context: ProcessContext, data: Dict):
             val = handle_value(context, v)
             logger.debug(f"数据处理结果：{k}={val}，type={type(val)}")
             if table is not None and table.get_column(k) is not None:
-                val = convert_value(val, table.get_column_type(k))
+                val = convert_value(
+                    val, table.get_column_type(k), nullable=table.get_column(k).nullable
+                )
             elif isinstance(v, Dict) and isinstance(v.type, str):
                 cell: DataCell = v
                 val = convert_value(val, cell.type)
