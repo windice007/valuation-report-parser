@@ -10,7 +10,7 @@ license = { file = "LICENSE" }
 classifiers = ["License :: OSI Approved :: MIT License"]
 description = "valuation report parser"
 dynamic = ["version"]
-requires-python = ">=3.7"
+requires-python = ">=3.10"
 dependencies = [
     "SQLAlchemy==1.4.48",
     "PyMySQL==1.1.0",
