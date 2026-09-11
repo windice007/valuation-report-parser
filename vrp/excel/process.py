@@ -106,9 +106,13 @@ def merged_value(context: ProcessContext, cell: DataCell, row: int, column: int)
                 co = 1
         r = row
         c = column
+        row_count = context.sheet.number_of_rows()
+        column_count = context.sheet.number_of_columns()
         while True:
             r = r + ro
             c = c + co
+            if not (0 <= r < row_count and 0 <= c < column_count):
+                return None
             try:
                 val = context.sheet.cell_value(r, c)
                 if val is not None and val != "":
