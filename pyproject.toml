@@ -1,6 +1,6 @@
 [build-system]
-requires = ["flit_core >=3.2,<4"]
-build-backend = "flit_core.buildapi"
+requires = ["hatchling>=1.27,<2"]
+build-backend = "hatchling.build"
 
 [project]
 name = "tools-vrp"
@@ -8,7 +8,8 @@ authors = [{ name = "fengbing", email = "bing.feng@iquantex.com" }]
 readme = "readme.md"
 license = { file = "LICENSE" }
 classifiers = ["License :: OSI Approved :: MIT License"]
-dynamic = ["version", "description"]
+description = "valuation report parser"
+dynamic = ["version"]
 requires-python = ">=3.7"
 dependencies = [
     "SQLAlchemy==1.4.48",
@@ -32,8 +33,17 @@ Home = "https://www.iquantex.com"
 vrp = "vrp.run:main"
 tools = "vrp.tools:main"
 
-[tool.flit.module]
-name = "vrp"
+[tool.hatch.version]
+path = "vrp/__init__.py"
 
-[tool.flit.sdist]
-exclude = ["*.bat", "config", "Dockerfile", "*.sh", ".gitignore"]
+[tool.hatch.build.targets.wheel]
+packages = ["vrp"]
+
+[tool.hatch.build.targets.sdist]
+include = ["/vrp", "/tests", "/pyproject.toml", "/readme.md", "/LICENSE", "/requirements.txt"]
+
+[[tool.uv.index]]
+name = "nexus"
+url = "https://nexus-tzgl.szkingdom.com/repository/pypi-public/simple"
+publish-url = "https://nexus-tzgl.szkingdom.com/repository/pypi-hosted/"
+default = true
