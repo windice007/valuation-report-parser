@@ -7,9 +7,9 @@ import os
 import argparse
 from vrp.base.logger import logger
 import time
-from vrp.entry import helper, gen_trade, config_template
+from vrp.entry import helper, config_template
 
-ENTRYS: list[ModuleType] = [helper, gen_trade, config_template]
+ENTRYS: list[ModuleType] = [helper, config_template]
 
 
 def get_prog(m: ModuleType):

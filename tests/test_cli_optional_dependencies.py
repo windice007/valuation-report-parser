@@ -26,6 +26,8 @@ def test_cli_help_without_gauss(module):
     result = run_without_gauss(module, "--help")
     assert result.returncode == 0, result.stdout + result.stderr
     assert "--help" in result.stdout
+    if module == "vrp.tools":
+        assert "gen_trade" not in result.stdout
 
 
 @pytest.mark.parametrize("driver_source, expected_error", [
