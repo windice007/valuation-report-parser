@@ -47,3 +47,8 @@ name = "nexus"
 url = "https://nexus-tzgl.szkingdom.com/repository/pypi-public/simple"
 publish-url = "https://nexus-tzgl.szkingdom.com/repository/pypi-hosted/"
 default = true
+
+[dependency-groups]
+dev = [
+    "pyinstaller>=6.22.3",
+]
