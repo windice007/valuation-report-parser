@@ -1,6 +1,4 @@
-from configparser import RawConfigParser
 import json
-import os
 from time import perf_counter
 from vrp import Args
 from vrp.base.logger import logger
@@ -10,9 +8,10 @@ from sqlalchemy import (
 )
 from sqlalchemy.engine import Connection
 from vrp.base import TABLE_NAME, CaseDict, ValuationReportData
-from vrp.base.utils import search_app_file
 from vrp.excel.utils import obj_json_default
 from sqlalchemy.engine.url import make_url, URL
+from vrp.storage.batching import rows_per_batch
+from vrp.storage.settings import get_db_connection_url
 
 
 class Sink(object):
@@ -146,7 +145,7 @@ class DbSink(Sink):
                     seen.clear()
                 yield table, [row]
                 continue
-            limit = min(self.batch_size, max(1, 30000 // max(1, len(fields))))
+            limit = rows_per_batch(max(1, len(fields)), self.batch_size)
             if batch and (
                 table is not current_table
                 or fields != current_fields
@@ -232,19 +231,6 @@ class DbSink(Sink):
             "估值数据写入数据库完成，记录%d条，批次%d个，耗时%.3f秒",
             len(vpd.details) + len(vpd.products), batches, perf_counter() - started,
         )
-
-
-def get_db_connection_url(args: Args):
-    if isinstance(args.connection_url, str) and args.connection_url != "":
-        return args.connection_url
-    cp = RawConfigParser()
-    settings_file = search_app_file("settings.ini", args.dir)
-    if settings_file:
-        logger.info(f"加载配置文件：{os.path.abspath(settings_file)}")
-        cp.read(settings_file)
-        if cp.has_option("database", "connection_url"):
-            return cp.get("database", "connection_url")
-    return None
 
 
 def check_db_settings(args: Args) -> DbSink | None:

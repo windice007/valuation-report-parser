@@ -1,7 +1,5 @@
 from datetime import datetime, date
 import re
-import shutil
-from tempfile import TemporaryDirectory
 from vrp import Args, __version__
 from vrp.base import (
     DATASOUCE,
@@ -35,9 +33,15 @@ from vrp.excel.utils import Dict
 from vrp.base.logger import logger
 from decimal import Decimal
 from sqlalchemy import Table, Numeric, String, Date, DateTime
-from dateutil.parser import parse as parse_date
-import pyexcel
 import os
+from vrp.workbook.reader import read_sheet
+from vrp.parsing.conversion import convert_any_to_str, convert_value
+from vrp.parsing.dates import (
+    convert_int_to_datetime,
+    convert_str_to_date,
+    convert_str_to_datetime,
+)
+from vrp.parsing.numbers import convert_str_to_decimal
 
 
 class ProcessContext:
@@ -188,34 +192,6 @@ def get_cell_subject_code(
     if isinstance(cell.subject_code, Dict):
         return capture_data(context, cell.subject_code, row)
     return cell.subject_code
-
-
-def convert_str_to_decimal(v: str) -> Decimal:
-    v = re.sub(r"^([+-])\s+", r"\1", v.strip())
-    v = v.replace(",", "")
-    if v == "":
-        return Decimal(0)
-    elif v.endswith("%"):
-        return Decimal(v.rstrip("%")) / 100
-    else:
-        return Decimal(v)
-
-
-def convert_str_to_date(v: str) -> date:
-    dt = convert_str_to_datetime(v)
-    return dt.date() if dt is not None else None
-
-
-def convert_str_to_datetime(v: str) -> datetime:
-    if v == "":
-        return None
-    return parse_date(v)
-
-
-def convert_any_to_str(v) -> str:
-    if v is None:
-        return None
-    return str(v)
 
 
 FORMULA_ENV_PREFIX: str = "__ENV__"
@@ -411,52 +387,6 @@ def merge_details(
             target[DATASOUCE].extend(model[DATASOUCE])
 
 
-def convert_int_to_datetime(time: int):
-    # 20050631
-    # 20060707134422
-
-    if time > 20000000 and time < 29999999:
-        return datetime(
-            year=time // 10000, month=(time % 10000) // 100, day=(time % 100)
-        )
-
-    if time > 20000000000000 and time < 29990000000000:
-        return datetime(
-            year=time // 10000000000,
-            month=(time % 10000000000) // 100000000,
-            day=(time % 100000000) // 1000000,
-            hour=(time % 1000000) // 10000,
-            minute=(time % 10000) // 100,
-            second=(time % 100),
-        )
-    return datetime.fromtimestamp(time)
-
-
-def convert_value(val, t: Target_Type, nullable: bool = True):
-    if t == "number" and (
-        val is None or (isinstance(val, str) and not val.strip())
-    ):
-        return None if nullable else Decimal(0)
-
-    if isinstance(val, str):
-        if t == "number":
-            return convert_str_to_decimal(val)
-        if t == "date":
-            return convert_str_to_date(val)
-        if t == "datetime":
-            return convert_str_to_datetime(val)
-
-    if isinstance(val, int):
-        if t == "date":
-            return convert_int_to_datetime(val).date()
-        if t == "datetime":
-            return convert_int_to_datetime(val)
-
-    if t == "str":
-        return convert_any_to_str(val)
-    return val
-
-
 def process_data(context: ProcessContext, data: Dict):
     if isinstance(data, Dict):
         table: TableProxy = (
@@ -606,38 +536,9 @@ def row_code_str(row: int, context: ProcessContext) -> str:
     return "" if code is None else str(code)
 
 
-def stylesheet_fix(func):
-    def wrapper(*args, **kwargs):
-        fills = kwargs["fills"]
-        kwargs["fills"] = list(filter(lambda x: x is not None, fills))
-        func(*args, **kwargs)
-
-    return wrapper
-
-
 def process_excel_file(file: str, config: ExcelConfig, args: Args, sink: MultiSink):
     logger.info(f"开始处理估值文件：{file}")
-
-    try:
-        sheet = pyexcel.get_sheet(file_name=file, sheet_name=config.sheet_name)
-    except NotImplementedError:
-        with TemporaryDirectory(prefix="vrp-") as tmp_dir:
-            tmp_file = os.path.join(tmp_dir, os.path.basename(file) + "x")
-            logger.info(f"read file_name<{file}> fail, try read file<{tmp_file}>")
-            shutil.copyfile(file, tmp_file)
-            sheet = pyexcel.get_sheet(file_name=tmp_file, sheet_name=config.sheet_name)
-    except TypeError as err:
-        if (
-            len(err.args) > 0
-            and err.args[0] == "expected <class 'openpyxl.styles.fills.Fill'>"
-        ):
-            # 处理一个特殊的bug，xlsx文件中的style标签为空标签，导致openpyxl无法解析。
-            from openpyxl.styles.stylesheet import Stylesheet
-
-            Stylesheet.__init__ = stylesheet_fix(Stylesheet.__init__)
-            sheet = pyexcel.get_sheet(file_name=file, sheet_name=config.sheet_name)
-        else:
-            raise err
+    sheet = read_sheet(file, config.sheet_name)
 
     context = ProcessContext(sheet, config)
     context.is_debug = args.debug

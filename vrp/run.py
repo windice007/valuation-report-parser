@@ -1,14 +1,11 @@
 """
 valuation report parser
 """
-from io import TextIOBase
-import json
 import logging
-from vrp.base.utils import search_app_file
-from vrp.excel.define import ExcelConfig
+from vrp.config.loader import load_config_file
 
 from vrp.excel.process import process
-from vrp.excel.utils import Dict, obj_json_hook
+from vrp.config.objects import Dict
 
 # hidden import
 import pyexcel_xls
@@ -30,44 +27,9 @@ from vrp.base.logger import logger
 from vrp.excel.sink import MultiSink
 from vrp import Args, __version__
 import time
-
-
-def excel_filter(file):
-    if not os.path.isfile(file):
-        return False
-    file_name: str = os.path.basename(file)
-    if file_name.startswith("~$"):
-        return False
-    return file_name.lower().endswith((".xls", ".xlsx", ".csv"))
-
-
-def current_dir_files(dir):
-    result = map(lambda x: os.path.join(dir, x), os.listdir(dir))
-    return list(filter(excel_filter, result))
-
-
-def init_config(config: ExcelConfig):
-    if config.subject_code_column is None:
-        config.subject_code_column = "A"
-    if config.raise_index_out_range_error is None:
-        config.raise_index_out_range_error = True
-    return config
-
-
-def load_config_file(args: Args):
-    if isinstance(args.config, TextIOBase):
-        config: ExcelConfig = json.loads(args.config.read(), object_hook=obj_json_hook)
-        return init_config(config)
-
-    file = search_app_file(args.config, args.dir)
-    if file is None:
-        return None
-
-    logger.info(f"加载配置文件：{os.path.abspath(file)}")
-
-    with open(file, "r", encoding="utf-8") as f:
-        config: ExcelConfig = json.load(f, object_hook=obj_json_hook)
-    return init_config(config)
+from vrp.config.defaults import init_config
+from vrp.workbook.discovery import current_dir_files
+from vrp.workbook.filters import excel_filter
 
 
 def process_file(

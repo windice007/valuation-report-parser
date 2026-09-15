@@ -7,17 +7,14 @@ import os
 import argparse
 from vrp.base.logger import logger
 import time
+from vrp.cli.tool_parser import command_name
 from vrp.entry import helper, config_template
 
 ENTRYS: list[ModuleType] = [helper, config_template]
 
 
 def get_prog(m: ModuleType):
-    prog = getattr(m, "__PROG__", None)
-    if prog:
-        return prog
-    file = os.path.basename(m.__file__)
-    return os.path.splitext(file)[0]
+    return command_name(m)
 
 
 def main():
